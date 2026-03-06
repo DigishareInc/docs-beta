@@ -25,7 +25,7 @@ Choose **Custom Webhooks** from the list of available provider types.
 Scroll down to the **Webhook Configuration** section. Here you will see a list of all supported event categories.
 ::
 
-![Webhook Configuration Overview](/docs/webhook-overview.png)
+![Webhook Configuration Overview](/webhook-overview.png)
 
 ## 2. Supported Events
 
@@ -47,7 +47,7 @@ To subscribe to a specific event:
 
 This will open the **New Webhook** dialog.
 
-![Add Webhook Dialog](/docs/webhook-dialog.png)
+![Add Webhook Dialog](/webhook-dialog.png)
 
 ## 4. Webhook Settings
 
