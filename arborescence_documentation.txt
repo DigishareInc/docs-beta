@@ -1,0 +1,642 @@
+
+    ARBORESCENCE DU DOCUMENTATION
+
+
+docs/
+├── README.md
+├── app.config.ts
+├── nuxt.config.ts
+├── package.json
+├── bun.lock
+├── .gitignore
+│
+├── assets/
+├── components/
+├── i18n/
+├── public/
+│
+└── content/
+    │
+    ├── en/   ──────────────────────────────── [ENGLISH VERSION]
+    │   │
+    │   ├── index.md
+    │   │
+    │   ├── 1.overview/
+    │   │   ├── 1.introduction.md
+    │   │   │   ├── ## What is Digishare?
+    │   │   │   └── ## Key Features
+    │   │   │
+    │   │   └── 2.api-reference.md
+    │   │       └── # API Reference
+    │   │
+    │   ├── 2.developer-guides/
+    │   │   ├── index.md
+    │   │   │
+    │   │   ├── 1.authentication.md
+    │   │   │   ├── ## 1. Personal Access Token
+    │   │   │   │   ├── ### Generate Token
+    │   │   │   │   ├── ### Copy Token
+    │   │   │   │   ├── ### Authenticate
+    │   │   │   │   └── ### Try It Out
+    │   │   │   └── ## 2. OAuth 2.0 Client Credentials
+    │   │   │       ├── ### Get Credentials
+    │   │   │       ├── ### Request Token
+    │   │   │       ├── ### Use Token
+    │   │   │       ├── ### Token Request
+    │   │   │       └── ### Token Response
+    │   │   │
+    │   │   ├── 2.best-practices.md
+    │   │   │   ├── ## 1. Media Management
+    │   │   │   └── ## 2. Fixed Values (Constants)
+    │   │   │
+    │   │   ├── 2.error-handling.md
+    │   │   │   └── ## Common HTTP Codes
+    │   │   │
+    │   │   ├── 2.message-templates/
+    │   │   │   ├── index.md
+    │   │   │   │   ├── ## Template Categories
+    │   │   │   │   ├── ### 📣 Marketing
+    │   │   │   │   ├── ### 🛠️ Utility
+    │   │   │   │   └── ### 🔐 Authentication
+    │   │   │   │
+    │   │   │   ├── 0.watsApp-button-rules.md
+    │   │   │   │   ├── ## 1. Global Rules
+    │   │   │   │   ├── ## 2. Allowed Button Types
+    │   │   │   │   ├── ## 3. Allowed Combinations
+    │   │   │   │   │   ├── ### Option 1: Quick Reply Only
+    │   │   │   │   │   ├── ### Option 2: Non-Quick Reply Only
+    │   │   │   │   │   └── ### Option 3: Mix Quick Reply + Other Types
+    │   │   │   │   ├── ## 4. Forbidden Combinations
+    │   │   │   │   ├── ## 5. Display Behavior
+    │   │   │   │   └── ## 6. Summary
+    │   │   │   │
+    │   │   │   └── 1.api.md
+    │   │   │       ├── ## 1. List Templates
+    │   │   │       │   └── ### Parameters
+    │   │   │       ├── ## 2. Response Example
+    │   │   │       └── ## 3. Template Object
+    │   │   │           └── ### Component Types
+    │   │   │
+    │   │   ├── 3.livechat/
+    │   │   │   ├── index.md
+    │   │   │   │
+    │   │   │   ├── 0.integration.md
+    │   │   │   │   ├── ## 1. Webhooks
+    │   │   │   │   │   └── ### Events
+    │   │   │   │   └── ## 2. Sending Messages
+    │   │   │   │       ├── ### Prepare Payload
+    │   │   │   │       ├── ### Send Request
+    │   │   │   │       ├── ### Verify
+    │   │   │   │       ├── ### Request Body
+    │   │   │   │       └── ### Example
+    │   │   │   │
+    │   │   │   ├── 0.outgoing-messages/
+    │   │   │   │   ├── 1.text_message.md
+    │   │   │   │   ├── 2.location_message.md
+    │   │   │   │   ├── 3.reply_button.md
+    │   │   │   │   ├── 4.list_menu.md
+    │   │   │   │   └── 5.location_request.md
+    │   │   │   │
+    │   │   │   ├── 1.Incoming -messages/
+    │   │   │   │   ├── 0.constraints.md
+    │   │   │   │   ├── 1.text_message.md
+    │   │   │   │   ├── 2.location-message.md
+    │   │   │   │   └── 3.reply_button.md
+    │   │   │   │
+    │   │   │   └── 2.Conversation/
+    │   │   │       ├── 1.check-conversation.md
+    │   │   │       │   ├── ### Query Parameters
+    │   │   │       │   ├── ### Check Request Example
+    │   │   │       │   └── ### Check Response
+    │   │   │       │
+    │   │   │       └── 2.send-on-conversation.md
+    │   │   │           ├── ### Key Parameters / Payload
+    │   │   │           ├── ### Message Request Example
+    │   │   │           └── ### Message Response (Success)
+    │   │   │
+    │   │   ├── 4.campaigns/
+    │   │   │   └── Whatsapp/
+    │   │   │       ├── 0.best-practices.md
+    │   │   │       │   ├── ## 1. Dynamic Variables
+    │   │   │       │   ├── ## 2. Rate Limits
+    │   │   │       │   └── ## 3. Template Maintenance
+    │   │   │       │
+    │   │   │       ├── 1.error-handling.md
+    │   │   │       │   ├── ## WhatsApp Specific Issues
+    │   │   │       │   ├── ### ❌ Template not found
+    │   │   │       │   ├── ### ❌ Invalid phone number
+    │   │   │       │   ├── ### ❌ Media URL not accessible
+    │   │   │       │   └── ### ❌ Missing variable
+    │   │   │       │
+    │   │   │       ├── 3.whatsapp.md
+    │   │   │       │   ├── ## 1. Payload Structure
+    │   │   │       │   │   └── ### Common Variables
+    │   │   │       │   ├── ## 2. Example: Standard Template
+    │   │   │       │   ├── ## 3. Dynamic Variables
+    │   │   │       │   ├── ## 4. Scheduling (Optional)
+    │   │   │       │   └── ## 5. Conversation Tags
+    │   │   │       │       └── ### How it works
+    │   │   │       │
+    │   │   │       └── Exempls/
+    │   │   │           ├── 4.whatsapp-pdf.md
+    │   │   │           │   ├── ## Method 1: Embedded Base64
+    │   │   │           │   │   ├── ### Encode PDF
+    │   │   │           │   │   ├── ### Construct Payload
+    │   │   │           │   │   └── ### Send Request
+    │   │   │           │   └── ## Method 2: Two-Step Upload
+    │   │   │           │       ├── ### Upload File
+    │   │   │           │       ├── ### Send Campaign
+    │   │   │           │       ├── ### Step 1: Upload
+    │   │   │           │       └── ### Step 2: Send
+    │   │   │           │
+    │   │   │           ├── 5.whatsapp-image.md
+    │   │   │           │   ├── ## 1. Use Cases
+    │   │   │           │   ├── ## 2. Supported Formats
+    │   │   │           │   ├── ## 3. Payload
+    │   │   │           │   └── ## 4. Variables
+    │   │   │           │
+    │   │   │           ├── 6.whatsapp-video.md
+    │   │   │           │   ├── ## 1. Use Cases
+    │   │   │           │   ├── ## 2. Video Limitations
+    │   │   │           │   ├── ## 3. Payload
+    │   │   │           │   └── ## 4. Variables
+    │   │   │           │
+    │   │   │           ├── 7.whatsapp-quickreply.md
+    │   │   │           │   ├── ## 1. Use Cases
+    │   │   │           │   ├── ## 2. Automatic Actions
+    │   │   │           │   ├── ## 3. Payload
+    │   │   │           │   └── ## 4. Variables
+    │   │   │           │
+    │   │   │           ├── 8.whatsapp-phone.md
+    │   │   │           │   ├── ## 1. Use Cases
+    │   │   │           │   ├── ## 2. Configuration
+    │   │   │           │   └── ## 3. Payload
+    │   │   │           │
+    │   │   │           ├── 9.whatsapp-url.md
+    │   │   │           │   ├── ## 1. Use Cases
+    │   │   │           │   ├── ## 2. Dynamic URL
+    │   │   │           │   └── ## 3. Payload
+    │   │   │           │
+    │   │   │           ├── 10.whatsapp-flow.md
+    │   │   │           │   ├── ## 1. Use Cases
+    │   │   │           │   ├── ## 2. WhatsApp Flows
+    │   │   │           │   └── ## 3. Payload
+    │   │   │           │
+    │   │   │           ├── 11.whatsapp-carousel.md
+    │   │   │           │   ├── ## 1. Use Cases
+    │   │   │           │   ├── ## 2. Important Rules
+    │   │   │           │   ├── ## 3. Variable Structure
+    │   │   │           │   └── ## 4. Payload
+    │   │   │           │
+    │   │   │           └── 12.whatsapp-otp.md
+    │   │   │               ├── ## 1. Use Cases
+    │   │   │               ├── ## 2. OTP Security
+    │   │   │               ├── ## 3. Payload
+    │   │   │               └── ## 4. Variables
+    │   │   │
+    │   │   ├── 5.thirds/
+    │   │   │   ├── index.md
+    │   │   │   │   └── # Thirds API
+    │   │   │   │
+    │   │   │   ├── 0.overview.md
+    │   │   │   │   ├── # Thirds
+    │   │   │   │   ├── ## Quick Example
+    │   │   │   │   ├── ## What You Can Do
+    │   │   │   │   ├── ## The Third Object
+    │   │   │   │   ├── ## Core Fields
+    │   │   │   │   ├── ## Contact Details
+    │   │   │   │   ├── ## Flags
+    │   │   │   │   ├── ## Extended Data
+    │   │   │   │   ├── ## Related IDs
+    │   │   │   │   └── ## Next Steps
+    │   │   │   │
+    │   │   │   ├── 1.crud.md
+    │   │   │   │   ├── ## List Thirds
+    │   │   │   │   │   ├── ### Parameters
+    │   │   │   │   │   └── ### Example Response
+    │   │   │   │   ├── ## Get a Third
+    │   │   │   │   │   ├── ### Parameters
+    │   │   │   │   │   └── ### Example Response
+    │   │   │   │   ├── ## Create a Third
+    │   │   │   │   │   ├── ### Request Body
+    │   │   │   │   │   ├── ### Available Fields
+    │   │   │   │   │   └── ### Response
+    │   │   │   │   ├── ## Update a Third
+    │   │   │   │   │   ├── ### Request Body
+    │   │   │   │   │   └── ### Response
+    │   │   │   │   ├── ## Delete a Third
+    │   │   │   │   │   └── ### Response
+    │   │   │   │   ├── ## Error Handling
+    │   │   │   │   │   ├── ### Common Errors
+    │   │   │   │   │   └── ### Validation Error Example
+    │   │   │   │   └── ## What's Next?
+    │   │   │   │
+    │   │   │   ├── 2.custom-fields.md
+    │   │   │   │   ├── ## Architectural Approaches
+    │   │   │   │   ├── ## The Quick Approach: data.custom_fields
+    │   │   │   │   │   ├── ### 1. Create During Entity Creation
+    │   │   │   │   │   └── ### 2. Update Existing Entity Fields
+    │   │   │   │   ├── ## The Advanced Approach: Explicit Schemas
+    │   │   │   │   │   ├── ### 1. Define or Manage Field Schemas
+    │   │   │   │   │   │   └── #### Supported Data Types
+    │   │   │   │   │   ├── ### 2. Mutate Entity Custom Fields Directly
+    │   │   │   │   │   ├── ### 3. Retrieve Entity Custom Fields
+    │   │   │   │   │   └── ### 4. Remove Specific Fields
+    │   │   │   │   ├── ## Advanced Indexing & Filtering
+    │   │   │   │   │   ├── ### Filter Queries By Custom Fields
+    │   │   │   │   │   └── #### Operator Reference
+    │   │   │   │   ├── ## Spreadsheet / Bulk Imports
+    │   │   │   │   └── ## Strategy Comparison Matrix
+    │   │   │   │
+    │   │   │   └── 3.import.md
+    │   │   │       ├── ## Import Endpoint
+    │   │   │       │   ├── ### Request Body
+    │   │   │       │   └── ### Response
+    │   │   │       ├── ## File Format
+    │   │   │       │   ├── ### Standard Columns
+    │   │   │       │   └── ### Custom Field Columns
+    │   │   │       ├── ## Example Spreadsheet
+    │   │   │       ├── ## Import Behavior
+    │   │   │       │   ├── ### Matching Existing Records
+    │   │   │       │   └── ### Custom Fields Sync
+    │   │   │       ├── ## cURL Example
+    │   │   │       ├── ## Error Handling
+    │   │   │       └── ## Related
+    │   │   │
+    │   │   ├── 7.webhooks/
+    │   │   │   ├── index.md
+    │   │   │   │   ├── ## 1. Setup
+    │   │   │   │   ├── ### Set Webhook URL
+    │   │   │   │   ├── ### Listen for Events
+    │   │   │   │   └── ### Acknowledge Receipt
+    │   │   │   │
+    │   │   │   ├── Compaigns/
+    │   │   │   │   ├── 0.messagedelivered.md
+    │   │   │   │   ├── 1.delevry-failed.md
+    │   │   │   │   └── 2.interraction.md
+    │   │   │   │
+    │   │   │   ├── LiveChat/
+    │   │   │   │   ├── 0.new-conversation.md
+    │   │   │   │   ├── 1.new-message(Customer).md
+    │   │   │   │   ├── 2.new-message(Agent).md
+    │   │   │   │   └── 3.conversation-archived.md
+    │   │   │   │
+    │   │   │   ├── Third-Party-Event/
+    │   │   │   │   ├── index.md
+    │   │   │   │   │   └── ## Third Party Events (Contacts)
+    │   │   │   │   ├── 0.contact-created.md
+    │   │   │   │   ├── 1.contact-updated.md
+    │   │   │   │   └── 2.tag-changed.md
+    │   │   │   │
+    │   │   │   └── Ticket-event/
+    │   │   │       ├── index.md
+    │   │   │       │   └── ## Ticket Events
+    │   │   │       ├── 0.ticket-created.md
+    │   │   │       └── 0.ticket-updated.md
+    │   │   │
+    │   │   ├── 8.tickets/
+    │   │   │   └── index.md
+    │   │   │       ├── ## 1. Ticket Creation
+    │   │   │       ├── ## 2. Key Properties
+    │   │   │       └── ## 3. Management and Tracking
+    │   │   │           ├── ### Updating a Ticket
+    │   │   │           └── ### Ticket List
+    │   │   │
+    │   │   └── 9.models/
+    │   │       └── (vide)
+    │   │
+    │   └── 3.use-cases/
+    │       ├── index.md
+    │       └── 1.ecommerce-integration.md
+    │           ├── ## 1. Workflow Overview
+    │           │   ├── ### Upload Media
+    │           │   ├── ### Ticket Creation
+    │           │   ├── ### Automated Notification
+    │           │   └── ### Webhook Sync
+    │           ├── ## 2. Upload Media
+    │           ├── ## 3. Creating Tickets
+    │           ├── ## 4. Real-time Status Sync
+    │           └── ## 5. Entity Management (Thirds)
+    │
+    │
+    └── fr/   ──────────────────────────────── [VERSION FRANÇAISE]
+        │
+        ├── index.md
+        │
+        ├── 1.overview/
+        │   ├── 1.introduction.md
+        │   │   ├── ## Qu'est-ce que Digishare ?
+        │   │   └── ## Fonctionnalités Clés
+        │   │
+        │   └── 2.api-reference.md
+        │       └── # Référence API
+        │
+        ├── 2.developer-guides/
+        │   ├── index.md
+        │   │
+        │   ├── 1.authentication.md
+        │   │   ├── ## 1. Jeton d'Accès Personnel
+        │   │   │   ├── ### Générer le Jeton
+        │   │   │   ├── ### Copier le Jeton
+        │   │   │   ├── ### Authentifier
+        │   │   │   └── ### Essayez-le
+        │   │   └── ## 2. Identifiants Client OAuth 2.0
+        │   │       ├── ### Obtenir les Identifiants
+        │   │       ├── ### Demander le Jeton
+        │   │       ├── ### Utiliser le Jeton
+        │   │       ├── ### Demande de Jeton
+        │   │       └── ### Réponse du Jeton
+        │   │
+        │   ├── 2.best-practices.md
+        │   │   ├── ## 1. Gestion des Médias
+        │   │   └── ## 2. Valeurs Fixes (Constantes)
+        │   │
+        │   ├── 2.error-handling.md
+        │   │   └── ## Codes HTTP Communs
+        │   │
+        │   ├── 2.message-templates/
+        │   │   ├── index.md
+        │   │   │   ├── ## Catégories de Templates
+        │   │   │   ├── ### 📣 Marketing
+        │   │   │   ├── ### 🛠️ Utility (Utilitaires)
+        │   │   │   └── ### 🔐 Authentication (Authentification)
+        │   │   │
+        │   │   ├── 0.watsApp-button-rules.md
+        │   │   │   ├── ## 1. Règles globales
+        │   │   │   ├── ## 2. Types de boutons autorisés
+        │   │   │   ├── ## 3. Combinaisons autorisées
+        │   │   │   │   ├── ### Option 1 : Uniquement Quick Reply
+        │   │   │   │   ├── ### Option 2 : Uniquement boutons non-Quick Reply
+        │   │   │   │   └── ### Option 3 : Mix Quick Reply + autres types
+        │   │   │   ├── ## 4. Combinaisons interdites
+        │   │   │   ├── ## 5. Comportement d'affichage
+        │   │   │   └── ## 6. Récapitulatif
+        │   │   │
+        │   │   └── 1.api.md
+        │   │       ├── ## 1. Lister les Modèles
+        │   │       │   └── ### Paramètres
+        │   │       ├── ## 2. Exemple de Réponse
+        │   │       └── ## 3. L'Objet Template
+        │   │           └── ### Types de composants
+        │   │
+        │   ├── 3.livechat/
+        │   │   ├── index.md
+        │   │   │
+        │   │   ├── 0.integration.md
+        │   │   │   ├── ## 1. Webhooks
+        │   │   │   │   └── ### Événements
+        │   │   │   └── ## 2. Envoi de Messages
+        │   │   │       ├── ### Préparer le Payload
+        │   │   │       ├── ### Envoyer la Requête
+        │   │   │       ├── ### Vérifier
+        │   │   │       ├── ### Corps de la Requête
+        │   │   │       └── ### Exemple
+        │   │   │
+        │   │   ├── 0.outgoing-messages/
+        │   │   │   ├── 1.text_message.md
+        │   │   │   ├── 2.location_message.md
+        │   │   │   ├── 3.reply_button.md
+        │   │   │   ├── 4.list_menu.md
+        │   │   │   └── 5.location_request.md
+        │   │   │
+        │   │   ├── 1.Incoming -messages/
+        │   │   │   ├── 0.constraints.md
+        │   │   │   ├── 1.text_message.md
+        │   │   │   ├── 2.location-message.md
+        │   │   │   └── 3.reply_button.md
+        │   │   │
+        │   │   └── 2.conversation/
+        │   │       ├── 1.check-conversation.md
+        │   │       │   ├── ### Paramètres de la Requête
+        │   │       │   ├── ### Exemple de Requête
+        │   │       │   └── ### Réponse
+        │   │       │
+        │   │       └── 2.send-message-conversation.md
+        │   │           ├── ### Paramètres Principaux / Payload
+        │   │           ├── ### Exemple de Requête
+        │   │           └── ### Réponse (Succès)
+        │   │
+        │   ├── 4.campaigns/
+        │   │   └── Whatsapp/
+        │   │       ├── 0.best-practices.md
+        │   │       │   ├── ## 1. Variables Dynamiques
+        │   │       │   ├── ## 2. Limites de Débit (Rate Limits)
+        │   │       │   └── ## 3. Maintenance des Templates
+        │   │       │
+        │   │       ├── 1.error-handling.md
+        │   │       │   ├── ## Problèmes Spécifiques WhatsApp
+        │   │       │   ├── ### ❌ Template not found
+        │   │       │   ├── ### ❌ Invalid phone number
+        │   │       │   ├── ### ❌ Media URL not accessible
+        │   │       │   └── ### ❌ Missing variable
+        │   │       │
+        │   │       ├── 3.whatsapp.md
+        │   │       │   ├── ## 1. Structure du Payload
+        │   │       │   │   └── ### Variables Communes
+        │   │       │   ├── ## 2. Exemple : Modèle Standard
+        │   │       │   ├── ## 3. Variables Dynamiques
+        │   │       │   ├── ## 4. Planification (Optionnel)
+        │   │       │   └── ## 5. Tags de Conversation
+        │   │       │       └── ### Fonctionnement
+        │   │       │
+        │   │       └── exemples/
+        │   │           ├── 4.whatsapp-pdf.md
+        │   │           │   ├── ## Méthode 1 : Base64 Intégré
+        │   │           │   │   ├── ### Encoder le PDF
+        │   │           │   │   ├── ### Construire le Payload
+        │   │           │   │   └── ### Envoyer la Requête
+        │   │           │   └── ## Méthode 2 : Téléchargement en Deux Étapes
+        │   │           │       ├── ### Télécharger le Fichier
+        │   │           │       ├── ### Envoyer la Campagne
+        │   │           │       ├── ### Étape 1 : Téléchargement
+        │   │           │       └── ### Étape 2 : Envoi
+        │   │           │
+        │   │           ├── 5.whatsapp-image.md
+        │   │           │   ├── ## 1. Cas d'utilisation
+        │   │           │   ├── ## 2. Formats supportés
+        │   │           │   ├── ## 3. Payload
+        │   │           │   └── ## 4. Variables
+        │   │           │
+        │   │           ├── 6.whatsapp-video.md
+        │   │           │   ├── ## 1. Cas d'utilisation
+        │   │           │   ├── ## 2. Limitations vidéo
+        │   │           │   ├── ## 3. Payload
+        │   │           │   └── ## 4. Variables
+        │   │           │
+        │   │           ├── 7.whatsapp-quickreply.md
+        │   │           │   ├── ## 1. Cas d'utilisation
+        │   │           │   ├── ## 2. Actions automatiques
+        │   │           │   ├── ## 3. Payload
+        │   │           │   └── ## 4. Variables
+        │   │           │
+        │   │           ├── 8.whatsapp-phone.md
+        │   │           │   ├── ## 1. Cas d'utilisation
+        │   │           │   ├── ## 2. Configuration
+        │   │           │   └── ## 3. Payload
+        │   │           │
+        │   │           ├── 9.whatsapp-url.md
+        │   │           │   ├── ## 1. Cas d'utilisation
+        │   │           │   ├── ## 2. URL dynamique
+        │   │           │   └── ## 3. Payload
+        │   │           │
+        │   │           ├── 10.whatsapp-flow.md
+        │   │           │   ├── ## 1. Cas d'utilisation
+        │   │           │   ├── ## 2. WhatsApp Flows
+        │   │           │   └── ## 3. Payload
+        │   │           │
+        │   │           ├── 11.whatsapp-carousel.md
+        │   │           │   ├── ## 1. Cas d'utilisation
+        │   │           │   ├── ## 2. Règles importantes
+        │   │           │   ├── ## 3. Structure des variables
+        │   │           │   └── ## 4. Payload
+        │   │           │
+        │   │           └── 12.whatsapp-otp.md
+        │   │               ├── ## 1. Cas d'utilisation
+        │   │               ├── ## 2. Sécurité OTP
+        │   │               ├── ## 3. Payload
+        │   │               └── ## 4. Variables
+        │   │
+        │   ├── 5.thirds/
+        │   │   ├── index.md
+        │   │   │   └── # API Thirds
+        │   │   │
+        │   │   ├── 0.overview.md
+        │   │   │   ├── # Thirds
+        │   │   │   ├── ## Exemple Rapide
+        │   │   │   ├── ## Ce que Vous Pouvez Faire
+        │   │   │   ├── ## L'Objet Third
+        │   │   │   ├── ## Champs Principaux
+        │   │   │   ├── ## Détails de Contact
+        │   │   │   ├── ## Indicateurs
+        │   │   │   ├── ## Données Étendues
+        │   │   │   ├── ## IDs Liés
+        │   │   │   └── ## Prochaines Étapes
+        │   │   │
+        │   │   ├── 1.crud.md
+        │   │   │   ├── ## Lister les Thirds
+        │   │   │   │   ├── ### Paramètres
+        │   │   │   │   └── ### Exemple de Réponse
+        │   │   │   ├── ## Récupérer un Third
+        │   │   │   │   ├── ### Paramètres
+        │   │   │   │   └── ### Exemple de Réponse
+        │   │   │   ├── ## Créer un Third
+        │   │   │   │   ├── ### Corps de la Requête
+        │   │   │   │   ├── ### Champs Disponibles
+        │   │   │   │   └── ### Réponse
+        │   │   │   ├── ## Mettre à Jour un Third
+        │   │   │   │   ├── ### Corps de la Requête
+        │   │   │   │   └── ### Réponse
+        │   │   │   ├── ## Supprimer un Third
+        │   │   │   │   └── ### Réponse
+        │   │   │   ├── ## Gestion des Erreurs
+        │   │   │   │   ├── ### Erreurs Courantes
+        │   │   │   │   └── ### Exemple d'Erreur de Validation
+        │   │   │   └── ## Et Ensuite ?
+        │   │   │
+        │   │   ├── 2.custom-fields.md
+        │   │   │   ├── ## Approches Architecturales
+        │   │   │   ├── ## L'Approche Rapide : data.custom_fields
+        │   │   │   │   ├── ### 1. Création avec l'Entité Principale
+        │   │   │   │   └── ### 2. Mise à Jour des Champs Existants
+        │   │   │   ├── ## L'Approche Avancée : Schémas Explicites
+        │   │   │   │   ├── ### 1. Définir ou Gérer les Schémas
+        │   │   │   │   │   └── #### Types Pris en Charge
+        │   │   │   │   ├── ### 2. Modifier Directement les Champs
+        │   │   │   │   ├── ### 3. Récupérer les Champs
+        │   │   │   │   └── ### 4. Supprimer des Champs Spécifiques
+        │   │   │   ├── ## Indexation & Filtrage Avancés
+        │   │   │   │   ├── ### Filtrer les Requêtes par Champs Personnalisés
+        │   │   │   │   └── #### Référence des Opérateurs
+        │   │   │   ├── ## Imports en Masse / Tableurs
+        │   │   │   └── ## Matrice de Comparaison Stratégique
+        │   │   │
+        │   │   └── 3.import.md
+        │   │       ├── ## Endpoint d'Import
+        │   │       │   ├── ### Corps de la Requête
+        │   │       │   └── ### Réponse
+        │   │       ├── ## Format du Fichier
+        │   │       │   ├── ### Colonnes Standard
+        │   │       │   └── ### Colonnes de Champs Personnalisés
+        │   │       ├── ## Exemple de Tableur
+        │   │       ├── ## Comportement de l'Import
+        │   │       │   ├── ### Correspondance des Enregistrements Existants
+        │   │       │   └── ### Synchronisation des Champs Personnalisés
+        │   │       ├── ## Exemple cURL
+        │   │       ├── ## Gestion des Erreurs
+        │   │       └── ## Ressources Connexes
+        │   │
+        │   ├── 7.webhooks/
+        │   │   ├── index.md
+        │   │   │   ├── ## 1. Configuration
+        │   │   │   ├── ### Définir l'URL du Webhook
+        │   │   │   ├── ### Écouter les événements
+        │   │   │   └── ### Accuser réception
+        │   │   │
+        │   │   ├── Compaigns/
+        │   │   │   ├── 0.messagedelivered.md
+        │   │   │   ├── 1.delevry-failed.md
+        │   │   │   └── 2.interraction.md
+        │   │   │
+        │   │   ├── LiveChat/
+        │   │   │   ├── 0.new-conversation.md
+        │   │   │   ├── 1.new-message(Customer).md
+        │   │   │   ├── 2.new-message(Agent).md
+        │   │   │   └── 3.conversation-archived.md
+        │   │   │
+        │   │   ├── Third-Party-Event/
+        │   │   │   ├── index.md
+        │   │   │   │   └── ## Événements tiers (Contacts)
+        │   │   │   ├── 0.contact-created.md
+        │   │   │   ├── 1.contact-updated.md
+        │   │   │   └── 2.tag-changed.md
+        │   │   │
+        │   │   └── Ticket-event/
+        │   │       ├── index.md
+        │   │       │   └── ## Ticket Events
+        │   │       ├── 0.ticket-created.md
+        │   │       └── 0.ticket-updated.md
+        │   │
+        │   └── 8.tickets/
+        │       └── index.md
+        │           ├── ## 1. Création de Ticket
+        │           ├── ## 2. Propriétés Clés
+        │           └── ## 3. Gestion et Suivi
+        │               ├── ### Mise à jour d'un Ticket
+        │               └── ### Liste des Tickets
+        │
+        └── 3.use-cases/
+            ├── index.md
+            └── 1.ecommerce-integration.md
+                ├── ## 1. Vue d'ensemble du Flux
+                │   ├── ### Télécharger le Média
+                │   ├── ### Création de Ticket
+                │   ├── ### Notification Automatisée
+                │   └── ### Synchronisation Webhook
+                ├── ## 2. Télécharger le Média
+                ├── ## 3. Création de Tickets
+                ├── ## 4. Synchronisation de Statut en Temps Réel
+                └── ## 5. Gestion des Entités (Tiers)
+
+================================================================================
+    RÉSUMÉ
+================================================================================
+
+    Langues         : 2 (en, fr)
+    Total fichiers  : 116 fichiers .md
+    
+    Sections principales :
+      1. Overview         - Introduction & Référence API
+      2. Developer Guides - 9 sous-sections :
+         ├── Authentication
+         ├── Best Practices & Error Handling
+         ├── Message Templates (WhatsApp button rules, API)
+         ├── LiveChat (Outgoing, Incoming, Conversation)
+         ├── Campaigns (WhatsApp: PDF, Image, Video, QuickReply,
+         │              Phone, URL, Flow, Carousel, OTP)
+         ├── Thirds (Overview, CRUD, Custom Fields, Import)
+         ├── Webhooks (Campaigns, LiveChat, Third-Party, Tickets)
+         ├── Tickets
+         └── Models
+      3. Use Cases        - E-commerce Integration
+
+================================================================================

@@ -1,0 +1,3495 @@
+openapi: 3.0.3
+info:
+  title: Digishare API Documentation
+  description: |
+    Welcome to the Digishare API! This comprehensive API empowers you to seamlessly manage marketing campaigns, customer support tickets, third-party entities (contacts/clients), and live chat interactions within the Digishare platform.
+
+    ## Key Capabilities
+    * **Campaign Orchestration:** Design, launch, and monitor targeted marketing and notification campaigns across various channels.
+    * **Integrated Ticketing System:** Manage customer support requests efficiently from creation to resolution.
+    * **Third-Party Management:** Maintain a centralized repository of your contacts, leads, and clients.
+    * **Live Chat Engagement:** Interact with your customers in real-time.
+    * **Real-time Event Notifications (Webhooks):** Stay informed about crucial events such as message status updates, new live chat conversations, or ticket modifications by configuring webhooks.
+
+    ## Getting Started with the API
+
+    1.  **Authentication:** All API endpoints require authentication. Please review the "Authentication Methods" section below to set up your access credentials.
+    2.  **Explore Endpoints:** Use the navigation panel (if available in your API viewer) or browse the `paths` section in this document to discover the available API operations. Each operation includes details on parameters, request bodies, and potential responses.
+    3.  **Understanding Data Models:** Familiarize yourself with the data structures in the `components/schemas` section. These define the objects you'll send and receive.
+    4.  **Leveraging Webhooks:** To receive real-time updates, configure your webhook endpoint(s) in your Digishare application settings. See the "Webhooks" section for event types and payload structures.
+
+    ## Authentication Methods
+
+    Secure access to the Digishare API is mandatory. Choose one of the following authentication methods:
+
+    **1. Personal Access Token (Bearer Token)**
+       *Ideal for server-to-server integrations or scripts where a user's context is implicitly tied to the token.*
+       1.  Navigate to the [Personal Access Token creation page](https://app.digishare.ma/personal-access-tokens/create) in your Digishare account.
+       2.  Generate a new Personal Access Token. Ensure you store this token securely, as it will not be shown again.
+       3.  Include this token in the `Authorization` header for every API request:
+        ```http
+        Authorization: Bearer YOUR_PERSONAL_ACCESS_TOKEN
+        ```
+
+    **2. Client Credentials Grant Flow (OAuth 2.0)**
+       *Recommended for third-party applications or services acting on their own behalf.*
+       1.  Obtain your `Client ID` and `Client Secret` from the [Client Applications page](https://app.digishare.ma/applications) in your Digishare account.
+       2.  Request an access token by sending a `POST` request to the token endpoint:
+           ```http
+           POST [https://api.digishare.ma/v1/oauth/token](https://api.digishare.ma/v1/oauth/token)
+           Content-Type: application/json
+
+           {
+             "grant_type": "client_credentials",
+             "client_id": "YOUR_CLIENT_ID",
+             "client_secret": "YOUR_CLIENT_SECRET"
+           }
+           ```
+       3.  The response will include an `access_token`. Store this token securely and include it in the `Authorization` header for subsequent API requests:
+           ```http
+           Authorization: Bearer YOUR_ACCESS_TOKEN
+           ```
+       4.  Access tokens obtained via this flow have a limited lifetime. Your application should be prepared to request a new token when the current one expires.
+
+    For a more detailed guide on authentication, please visit our [Authentication Guide](https://docs.digishare.ma/auth).
+  version: 1.0.4
+  contact:
+    name: Digishare Support
+    email: support@digishare.ma
+    url: https://support.digishare.ma
+  x-logo:
+    url: 'https://app.digishare.ma/digi-icon.png'
+    altText: 'Digishare Logo'
+  x-tagGroups:
+    - name: Core Entities
+      tags:
+        - Campaigns
+        - Message Templates
+        - Tickets
+        - Third Parties
+    - name: Real-time Notifications (Webhooks)
+      tags:
+        - 'Webhooks: Campaign Messages'
+        - 'Webhooks: Third Party Events'
+        - 'Webhooks: Live Chat Events'
+        - 'Webhooks: Ticket Events'
+servers:
+  - url: https://api.digishare.ma/v1
+    description: Production API Server
+  - url: https://dev.api.digishare.ma/v1
+    description: Development API Server (Use for testing and integration)
+security:
+  - bearerAuth: []
+  - clientCredentialsAuth: []
+tags:
+  - name: Campaigns
+    description: Manage marketing and notification campaigns, including creation, retrieval, and updates.
+  - name: Message Templates
+    description: Manage pre-approved message templates, often used for channels like WhatsApp Business API, ensuring compliance and consistency.
+  - name: Tickets
+    description: Handle customer support tickets, from creation and assignment to resolution and closure.
+  - name: Third Parties
+    description: Manage contacts, leads, and clients (referred to as "Third Party" entities) within the Digishare ecosystem.
+  - name: 'Webhooks: Campaign Messages'
+    description: Definitions and examples for webhook events related to campaign message statuses and interactions.
+  - name: 'Webhooks: Ticket Events'
+    description: Definitions and examples for webhook events concerning the lifecycle of support tickets.
+  - name: 'Webhooks: Third Party Events'
+    description: Definitions and examples for webhook events related to changes in Third Party (contact/client) data.
+  - name: 'Webhooks: Live Chat Events'
+    description: Definitions and examples for webhook events associated with live chat conversations and messages.
+
+webhooks:
+  # The webhooks section is organized by event type for clear navigation.
+  # Each webhook definition includes a summary, detailed description, expected request body, and possible responses.
+
+  campaignMessageEvent:
+    summary: Campaign Message Event Webhook
+    description: |
+      This webhook sends `POST` requests to your configured URL when events related to campaign messages occur, such as delivery status updates (sent, delivered, read) or recipient interactions (e.g., button clicks).
+
+      To receive these notifications for a specific campaign, ensure that the `"notify_webhooks": true` property is set within the `contacts_and_data` object when creating or updating that campaign.
+
+      **Your endpoint MUST respond with an HTTP `200 OK` status code to acknowledge successful receipt.** No specific response body is expected by Digishare. Failure to respond with `200 OK` may lead to retries and potential disabling of your webhook.
+    post:
+      summary: Listener for Campaign Message Events
+      requestBody:
+        description: Notification payload containing the specific campaign message event type and associated data. The structure of the `data` field depends on the `event` type (e.g., `campaign_message.delivered`, `campaign_message.interaction`, `campaign_message.failed`).
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CampaignWebhookPayload'
+            examples:
+              messageDelivered:
+                summary: 'Example: Message Delivered'
+                value:
+                  event: 'campaign_message.delivered'
+                  data:
+                    date: '2025-04-09T02:02:11.000000Z'
+                    campaign_id: 'cmp_abc123def456'
+                    provider_id: 'prov_whatsapp_prod'
+                    channel_id: 'whatsapp'
+                    recipient_id: '212601020304'
+                    campaign_external_ref: 'RAMADAN_PROMO_25'
+                    message_external_ref: null
+                    provider_message_id: 'wamid.HBgNNzA5ODUwOTI0MzE4QkU1QzQ1Rg=='
+                    push_log_id: 'pl_ghi789jkl012'
+                    planned_message_id: 'pm_mno345pqr678'
+                    status_code: 'delivered'
+              messageInteraction:
+                summary: 'Example: Message Interaction (Button Click)'
+                value:
+                  event: 'campaign_message.interaction'
+                  data:
+                    date: '2025-04-09T02:05:30.000000Z'
+                    campaign_id: 'cmp_abc123def456'
+                    provider_id: 'prov_whatsapp_prod'
+                    channel_id: 'whatsapp'
+                    recipient_id: '212601020304'
+                    campaign_external_ref: 'RAMADAN_PROMO_25'
+                    message_external_ref: null
+                    provider_message_id: 'wamid.HBgNNzA5ODUwOTI0MzE4QkU1QzQ1Rg=='
+                    push_log_id: 'pl_ghi789jkl012'
+                    planned_message_id: 'pm_mno345pqr678'
+                    status_code: 'interaction'
+                    payload: 'button_yes_opt_in'
+              messageFailed:
+                summary: 'Example: Message Failed'
+                value:
+                  event: 'campaign_message.failed'
+                  data:
+                    date: '2025-04-09T02:03:00.000000Z'
+                    campaign_id: 'cmp_stu789vwx012'
+                    provider_id: 'prov_sms_global'
+                    channel_id: 'sms'
+                    recipient_id: '212600000000'
+                    campaign_external_ref: 'URGENT_ALERT_Q2'
+                    message_external_ref: null
+                    provider_message_id: 'smsid_1a2b3c4d5e6f'
+                    push_log_id: 'pl_yz012abc345'
+                    planned_message_id: 'pm_def678ghi901'
+                    status_code: 'failed'
+                    sub_status_code: 'failed_invalid_recipient'
+                    error_message: 'The recipient number is not valid or is blacklisted.'
+      responses:
+        '200':
+          description: Successfully Acknowledged. Your server has received and acknowledged the webhook event. No response body is expected by Digishare.
+        '400':
+          description: Bad Request. The payload sent by Digishare might be malformed (unlikely) or your endpoint could not process it due to a client-side validation error on your end.
+        '401':
+          description: Unauthorized. If your webhook endpoint itself requires authentication and it failed.
+        '500':
+          description: Internal Server Error. Your server encountered an unexpected error while processing the webhook. Digishare may retry based on its policy.
+        '503':
+          description: Service Unavailable. Your server is temporarily unable to process the webhook (e.g., overloaded, down for maintenance). Digishare may retry.
+      tags: ['Webhooks: Campaign Messages']
+
+  thirdCreatedEvent:
+    summary: Third Party Created Event Webhook
+    description: |
+      Your designated endpoint will receive a `POST` request from Digishare when a new Third entity (contact, client, lead) is created.
+
+      **Your endpoint MUST respond with an HTTP `200 OK`** to acknowledge successful receipt.
+    post:
+      summary: Listener for Third Party Created Events
+      requestBody:
+        description: Notification payload containing the `third.created` event type and the full data of the newly created Third entity.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ThirdCreatedEvent'
+            example:
+              event: 'third.created'
+              data:
+                id: 'thd_0wyb4mee98mxng8p'
+                data:
+                  id: 'thd_0wyb4mee98mxng8p'
+                  main_third_id: null
+                  company_id: 'comp_780ew4kx3kdyjpa5'
+                  parent_id: null
+                  city_id: 'city_casablanca'
+                  country_id: 'country_ma'
+                  state_id: null
+                  source_id: 'src_webform_contact'
+                  ext_ref: 'WEBFORM-SUBMISSION-1001'
+                  premium: false
+                  verified: false
+                  is_company: false
+                  wa_id: '212611223344'
+                  email: 'new.contact@example.ma'
+                  mobile: '212611223344'
+                  phone: null
+                  first_name: 'Karim'
+                  last_name: 'Alaoui'
+                  name: 'Karim Alaoui'
+                  address: '15 Annasr Street'
+                  address_2: 'Gauthier District'
+                  lang: 'fr'
+                  gender: 'male'
+                  birthday: '1988-11-20'
+                  data: {}
+                  created_at: '2025-04-09T17:54:54.000000Z'
+                  updated_at: '2025-04-09T17:54:54.000000Z'
+                wasRecentlyCreated: true
+      responses:
+        '200':
+          description: Successfully Acknowledged.
+        '400':
+          description: Bad Request.
+        '500':
+          description: Internal Server Error.
+        '503':
+          description: Service Unavailable.
+      tags: ['Webhooks: Third Party Events']
+
+  thirdUpdatedEvent:
+    summary: Third Party Updated Event Webhook
+    description: |
+      Your designated endpoint will receive `POST` requests from Digishare when a Third entity's details are modified.
+      The payload includes the full updated entity and a `changes` object highlighting what was modified.
+
+      **Your endpoint MUST respond with an HTTP `200 OK`** to acknowledge successful receipt.
+    post:
+      summary: Listener for Third Party Updated Events
+      requestBody:
+        description: Notification payload containing the `third.updated` event type, the complete updated entity data, and an object detailing the changed attributes and their new values.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ThirdUpdatedEvent'
+            example:
+              event: 'third.updated'
+              data:
+                id: 'thd_0wyb4mee98mxng8p'
+                data:
+                  id: 'thd_0wyb4mee98mxng8p'
+                  main_third_id: null
+                  company_id: 'comp_780ew4kx3kdyjpa5'
+                  parent_id: null
+                  city_id: 'city_casablanca'
+                  country_id: 'country_ma'
+                  state_id: null
+                  source_id: 'src_webform_contact'
+                  ext_ref: 'EXT-REF-1001-MODIFIED'
+                  premium: true
+                  verified: true
+                  is_company: false
+                  wa_id: '212699887766'
+                  email: 'karim.alaoui.updated@example.ma'
+                  mobile: '212699887766'
+                  phone: '212522000000'
+                  first_name: 'Karim'
+                  last_name: 'Alaoui'
+                  name: 'Karim ALAOUI (VIP)'
+                  address: '15 Annasr Street, Apt 5B'
+                  address_2: 'Gauthier District, Casablanca'
+                  lang: 'en'
+                  gender: 'male'
+                  birthday: '1988-11-20'
+                  data: { 'loyalty_points': 500, 'segment': 'gold' }
+                  created_at: '2025-04-09T17:54:54.000000Z'
+                  updated_at: '2025-04-10T09:15:00.000000Z'
+                wasRecentlyCreated: false
+                changes:
+                  ext_ref: 'EXT-REF-1001-MODIFIED'
+                  premium: true
+                  verified: true
+                  wa_id: '212699887766'
+                  email: 'karim.alaoui.updated@example.ma'
+                  mobile: '212699887766'
+                  phone: '212522000000'
+                  name: 'Karim ALAOUI (VIP)'
+                  address: '15 Annasr Street, Apt 5B'
+                  lang: 'en'
+                  data: { 'loyalty_points': 500, 'segment': 'gold' }
+                  updated_at: '2025-04-10 09:15:00'
+      responses:
+        '200':
+          description: Successfully Acknowledged.
+        '400':
+          description: Bad Request.
+        '500':
+          description: Internal Server Error.
+      tags: ['Webhooks: Third Party Events']
+
+  thirdDeletedEvent:
+    summary: Third Party Deleted Event Webhook
+    description: |
+      Your designated endpoint will receive a `POST` request from Digishare when a Third entity is deleted.
+
+      **Your endpoint MUST respond with an HTTP `200 OK`** to acknowledge successful receipt.
+    post:
+      summary: Listener for Third Party Deleted Events
+      requestBody:
+        description: Notification payload containing the `third.deleted` event type and the unique identifier of the deleted Third entity.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ThirdDeletedEvent'
+            example:
+              event: 'third.deleted'
+              data:
+                id: 'thd_0wyb4mee98mxng8p'
+      responses:
+        '200':
+          description: Successfully Acknowledged.
+        '400':
+          description: Bad Request.
+        '500':
+          description: Internal Server Error.
+      tags: ['Webhooks: Third Party Events']
+
+  thirdTagsChangedEvent:
+    summary: Third Party Tags Changed Event Webhook
+    description: |
+      Your designated endpoint will receive a `POST` request from Digishare when the tags associated with a Third entity are modified.
+      It provides lists of attached and detached tag names/codes.
+
+      **Your endpoint MUST respond with an HTTP `200 OK`** to acknowledge successful receipt.
+    post:
+      summary: Listener for Third Party Tags Changed Events
+      requestBody:
+        description: Notification payload containing the `third.tags-changed` event type, the ID of the Third entity, and lists of tags that were attached and/or detached.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ThirdTagsChangedEvent'
+            example:
+              event: 'third.tags-changed'
+              data:
+                model_type: 'third'
+                model_id: 'thd_80ew4kx3bxkdyjpa'
+                attached_tags: ['vip_customer', 'newsletter_subscriber_active']
+                detached_tags: ['prospect_level_1', 'event_invitee_q1_2025']
+      responses:
+        '200':
+          description: Successfully Acknowledged.
+        '400':
+          description: Bad Request.
+        '500':
+          description: Internal Server Error.
+      tags: ['Webhooks: Third Party Events']
+
+  liveChatNewConversation:
+    summary: New Live Chat Conversation Event Webhook
+    description: |
+      Your designated endpoint will receive `POST` requests from Digishare when a new Live Chat conversation begins.
+      Provides details about the conversation and the participating Third Party.
+
+      **Your endpoint MUST respond with an HTTP `200 OK`** to acknowledge successful receipt.
+    post:
+      summary: Listener for New Live Chat Conversation Events
+      requestBody:
+        description: Notification payload containing the `live_chat.new_conversation` event type and associated data, including conversation ID and Third Party information.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LiveChatNewConversationEvent'
+            example:
+              event: 'live_chat.new_conversation'
+              data:
+                id: 'conv_abc123xyz789'
+                data:
+                  created_at: '2025-04-29T14:40:47.000000Z'
+                  third:
+                    id: 'thd_pqr456stu012'
+                    name: 'Fatima Zahra'
+                    platform_link:
+                      id: 'plnk_lmn789opq345'
+                      channel: 'whatsapp'
+                      platform_id: '212612345678'
+      responses:
+        '200':
+          description: Successfully Acknowledged.
+        '400':
+          description: Bad Request.
+        '500':
+          description: Internal Server Error.
+      tags: ['Webhooks: Live Chat Events']
+
+  liveChatMessage:
+    summary: New Live Chat Message Event Webhook
+    description: |
+      Your designated endpoint will receive `POST` requests from Digishare when a new message is posted in a Live Chat conversation.
+      Messages can originate from a user (customer), an agent (your staff), the system (e.g., bot messages, automated responses), or as part of a campaign message delivered via chat.
+      The structure of the `body` within the payload depends on the message `type`.
+
+      **Your endpoint MUST respond with an HTTP `200 OK`** to acknowledge successful receipt.
+    post:
+      summary: Listener for New Live Chat Message Events
+      requestBody:
+        description: Notification payload containing the `live_chat.new_message` event type and associated data. The `data.data.body` structure varies based on `data.data.type`.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LiveChatNewMessageEvent'
+            examples:
+              userTextMessage:
+                summary: 'Example: User Text Message'
+                value:
+                  event: 'live_chat.new_message'
+                  data:
+                    id: 'msg_user123abc456'
+                    data:
+                      conversation_id: 'conv_abc123xyz789'
+                      system: false
+                      type: 'text'
+                      body: 'Hello, I need help with my recent order.'
+                      send_to_third: false
+                      platform_link_id: 'plnk_lmn789opq345'
+                      sent_using: 'whatsapp'
+                      created_at: '2025-04-30T12:14:33.000000Z'
+                      sender:
+                        id: 'sndr_thd_pqr456stu012'
+                        model_type: 'third'
+                        model_id: 'thd_pqr456stu012'
+                        name: 'Fatima Zahra'
+              agentTextMessage:
+                summary: 'Example: Agent Text Message'
+                value:
+                  event: 'live_chat.new_message'
+                  data:
+                    id: 'msg_agent789def012'
+                    data:
+                      conversation_id: 'conv_abc123xyz789'
+                      system: false
+                      type: 'text'
+                      body: 'Hi Fatima, I can help you with that. What is your order number?'
+                      send_to_third: true
+                      platform_link_id: 'plnk_lmn789opq345'
+                      sent_using: 'whatsapp'
+                      created_at: '2025-04-30T12:15:05.000000Z'
+                      sender:
+                        id: 'sndr_usr_agent_support_01'
+                        model_type: 'user'
+                        model_id: 'usr_agent_support_01'
+                        name: 'Support Agent Ahmed'
+              systemNotificationMessage:
+                summary: 'Example: System Notification Message'
+                value:
+                  event: 'live_chat.new_message'
+                  data:
+                    id: 'msg_sys456def789'
+                    data:
+                      conversation_id: 'conv_abc123xyz789'
+                      system: true
+                      type: 'text'
+                      body: 'This conversation will be archived due to inactivity in 5 minutes.'
+                      send_to_third: true
+                      platform_link_id: null
+                      sent_using: null
+                      created_at: '2025-04-29T14:44:29.000000Z'
+                      sender: null
+              campaignInteractiveMessageViaChat:
+                summary: 'Example: Campaign Interactive Message (e.g., WhatsApp Buttons) via Chat'
+                value:
+                  event: 'live_chat.new_message'
+                  data:
+                    id: 'msg_camp789ghi012'
+                    data:
+                      conversation_id: 'conv_abc123xyz789'
+                      system: true
+                      type: 'campaign'
+                      body:
+                        api_provider_instance_id: 'aprovinst_whatsapp_business_main'
+                        campaign_id: 'camp_customer_survey_q2_2025'
+                        planned_message_id: 'plan_msg_survey_wave1_user123'
+                        channel: 'whatsapp'
+                        platform_link_id: 'plnk_lmn789opq345'
+                        message_template_id: 'tmpl_whatsapp_survey_interactive'
+                        msg:
+                          to: '212612345678'
+                          subject: 'Customer Satisfaction Survey'
+                          content:
+                            body:
+                              text: 'Thank you for your recent interaction! Could you please rate your experience?'
+                            type: 'button'
+                            action:
+                              buttons:
+                                - type: 'reply'
+                                  reply: { id: 'survey_very_satisfied', title: 'Very Satisfied 👍' }
+                                - type: 'reply'
+                                  reply: { id: 'survey_satisfied', title: 'Satisfied 😊' }
+                                - type: 'reply'
+                                  reply: { id: 'survey_neutral', title: 'Neutral 😐' }
+                                - type: 'reply'
+                                  reply: { id: 'survey_not_satisfied', title: 'Not Satisfied 👎' }
+                          content_type: 'interactive'
+                        msg_params:
+                          contact: { wa_id: '212612345678', third_id: 'thd_pqr456stu012' }
+                          message_data:
+                            { 'custom_var_name': 'Fatima', 'custom_var_product': 'Product X' }
+                      send_to_third: true
+                      platform_link_id: 'plnk_lmn789opq345'
+                      sent_using: 'whatsapp'
+                      created_at: '2025-04-30T12:14:35.000000Z'
+                      sender: null
+      responses:
+        '200':
+          description: Successfully Acknowledged.
+        '400':
+          description: Bad Request.
+        '500':
+          description: Internal Server Error.
+      tags: ['Webhooks: Live Chat Events']
+
+  liveChatConversationArchived:
+    summary: Live Chat Conversation Archived Event Webhook
+    description: |
+      Your designated endpoint will receive `POST` requests from Digishare when a Live Chat conversation is marked as archived.
+
+      **Your endpoint MUST respond with an HTTP `200 OK`** to acknowledge successful receipt.
+    post:
+      summary: Listener for Live Chat Conversation Archived Events
+      requestBody:
+        description: Notification payload containing the `live_chat.conversation_archived` event type, the ID of the archived conversation, and the timestamp of archiving.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LiveChatConversationArchivedEvent'
+            example:
+              event: 'live_chat.conversation_archived'
+              data:
+                conversation_id: 'conv_abc123xyz789'
+                archived_at: '2025-05-01T10:30:00.000000Z'
+      responses:
+        '200':
+          description: Successfully Acknowledged.
+        '400':
+          description: Bad Request.
+        '500':
+          description: Internal Server Error.
+      tags: ['Webhooks: Live Chat Events']
+
+  ticketCreatedEvent:
+    summary: Ticket Created Event Webhook
+    description: |
+      Your designated endpoint will receive `POST` requests from Digishare when a new support ticket is generated.
+
+      **Your endpoint MUST respond with an HTTP `200 OK`** to acknowledge successful receipt.
+    post:
+      summary: Listener for Ticket Created Events
+      requestBody:
+        description: Notification payload containing the `ticket.created` event type and the complete data of the newly created ticket.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TicketCreatedEvent'
+            example:
+              event: 'ticket.created'
+              data:
+                id: 'tkt_n65opmdwby6l84r7'
+                data:
+                  id: 'tkt_n65opmdwby6l84r7'
+                  ticket_number: 'T20250507-001897'
+                  subject: 'New Inquiry via Webform: Enterprise Plan Pricing'
+                  priority_id: 1
+                  type_ticket_id: 'ttyp_sales_inquiry'
+                  ticket_status_id: 'tstat_new'
+                  channel_id: 'chan_webform_main'
+                  external_id: null
+                  comment: 'Client is asking about pricing for enterprise plans. Submitted via contact form on website.'
+                  demand_date: '2025-05-07T10:00:00Z'
+                  date: '2025-05-07T10:00:05.000000Z'
+                  tags: ['pricing', 'enterprise_plan', 'web_inquiry']
+                  information:
+                    fullname: 'Leila Kassir'
+                    email: 'leila.kassir@example.com'
+                    phone: '212655112233'
+                    company_name: 'Innovatech Solutions SARL'
+                    country: 'Morocco'
+                    how_they_found_us: 'Google Search'
+                  third_id: 'thd_kassir_leila_innovatech'
+                  company_id: 'comp_digishare_main_account'
+                  source_id: 'src_website_contact_form'
+                  conversation_id: null
+                  creator_id: 'usr_system_webform_processor'
+                  handler_id: null
+                  handler_type: null
+                  category: 'Sales'
+                  note: null
+                  creation_mode: 'automatic_webform'
+                  closed_at: null
+                  date_status: '2025-05-07T10:00:05.000000Z'
+                  locked: false
+                  locked_at: null
+                  lang: 'en'
+                  data: {}
+                  created_at: '2025-05-07T10:00:05.000000Z'
+                  updated_at: '2025-05-07T10:00:05.000000Z'
+                  archived_at: null
+                wasRecentlyCreated: true
+      responses:
+        '200':
+          description: Successfully Acknowledged.
+        '400':
+          description: Bad Request.
+        '500':
+          description: Internal Server Error.
+      tags: ['Webhooks: Ticket Events']
+
+  ticketUpdatedEvent:
+    summary: Ticket Updated Event Webhook
+    description: |
+      Your designated endpoint will receive `POST` requests from Digishare when a support ticket's details are modified.
+      The payload includes the full updated ticket data and a `changes` object detailing what was modified.
+
+      **Your endpoint MUST respond with an HTTP `200 OK`** to acknowledge successful receipt.
+    post:
+      summary: Listener for Ticket Updated Events
+      requestBody:
+        description: Notification payload containing the `ticket.updated` event type, the complete updated ticket data, and an object listing the changed attributes and their new values.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TicketUpdatedEvent'
+            example:
+              event: 'ticket.updated'
+              data:
+                id: 'tkt_n65opmdwby6l84r7'
+                data:
+                  id: 'tkt_n65opmdwby6l84r7'
+                  ticket_number: 'T20250507-001897'
+                  subject: 'RE: New Inquiry via Webform: Enterprise Plan Pricing [Assigned]'
+                  priority_id: 1
+                  type_ticket_id: 'ttyp_sales_inquiry'
+                  ticket_status_id: 'tstat_assigned'
+                  channel_id: 'chan_webform_main'
+                  external_id: null
+                  comment: 'Client is asking about pricing for enterprise plans. Submitted via contact form on website.'
+                  demand_date: '2025-05-07T10:00:00Z'
+                  date: '2025-05-07T10:00:05.000000Z'
+                  tags: ['pricing', 'enterprise_plan', 'web_inquiry', 'assigned_to_sales_team']
+                  information:
+                    fullname: 'Leila Kassir'
+                    email: 'leila.kassir@example.com'
+                    phone: '212655112233'
+                    company_name: 'Innovatech Solutions SARL'
+                    country: 'Morocco'
+                    how_they_found_us: 'Google Search'
+                    internal_sla_target: '4 hours'
+                  third_id: 'thd_kassir_leila_innovatech'
+                  company_id: 'comp_digishare_main_account'
+                  source_id: 'src_website_contact_form'
+                  conversation_id: null
+                  creator_id: 'usr_system_webform_processor'
+                  handler_id: 'usr_agent_amina_sales'
+                  handler_type: 'user'
+                  category: 'Sales'
+                  note: 'Assigned to Amina from the sales team. Follow up required within 2 business hours.'
+                  creation_mode: 'automatic_webform'
+                  closed_at: null
+                  date_status: '2025-05-07T11:30:15.000000Z'
+                  locked: false
+                  locked_at: null
+                  lang: 'en'
+                  data: {}
+                  created_at: '2025-05-07T10:00:05.000000Z'
+                  updated_at: '2025-05-07T11:30:15.000000Z'
+                  archived_at: null
+                wasRecentlyCreated: false
+                changes:
+                  subject: 'RE: New Inquiry via Webform: Enterprise Plan Pricing [Assigned]'
+                  ticket_status_id: 'tstat_assigned'
+                  tags: ['pricing', 'enterprise_plan', 'web_inquiry', 'assigned_to_sales_team']
+                  information: { 'internal_sla_target': '4 hours' }
+                  handler_id: 'usr_agent_amina_sales'
+                  handler_type: 'user'
+                  note: 'Assigned to Amina from the sales team. Follow up required within 2 business hours.'
+                  date_status: '2025-05-07T11:30:15.000000Z'
+                  updated_at: '2025-05-07 11:30:15'
+      responses:
+        '200':
+          description: Successfully Acknowledged.
+        '400':
+          description: Bad Request.
+        '500':
+          description: Internal Server Error.
+      tags: ['Webhooks: Ticket Events']
+
+  ticketDeletedEvent:
+    summary: Ticket Deleted Event Webhook
+    description: |
+      Your designated endpoint will receive a `POST` request from Digishare when a support ticket is removed.
+
+      **Your endpoint MUST respond with an HTTP `200 OK`** to acknowledge successful receipt.
+    post:
+      summary: Listener for Ticket Deleted Events
+      requestBody:
+        description: Notification payload containing the `ticket.deleted` event type and the unique identifier of the deleted ticket.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TicketDeletedEvent'
+            example:
+              event: 'ticket.deleted'
+              data:
+                id: 'tkt_n65opmdwby6l84r7'
+      responses:
+        '200':
+          description: Successfully Acknowledged.
+        '400':
+          description: Bad Request.
+        '500':
+          description: Internal Server Error.
+      tags: ['Webhooks: Ticket Events']
+
+paths:
+  /campaigns:
+    get:
+      tags: [Campaigns]
+      summary: List Campaigns
+      description: |
+        Retrieves a paginated list of campaigns accessible by the authenticated user or client.
+        Supports filtering by status, tags, date ranges, and other criteria.
+      operationId: listCampaigns
+      parameters:
+        - name: status
+          in: query
+          description: Filter campaigns by their current status.
+          required: false
+          schema:
+            type: string
+            enum: [planned, in_progress, completed, cancelled, draft, failed, paused]
+          example: 'in_progress'
+        - name: tags
+          in: query
+          description: Filter campaigns by tags. Provide a comma-separated list of tag names to match campaigns containing ANY of the specified tags. For an exact match of ALL tags, specific backend support might be needed (e.g., `tags_all=tag1,tag2`).
+          required: false
+          schema:
+            type: string
+          example: 'promotion,q1-2024'
+        - name: start_date_from
+          in: query
+          description: Filter campaigns starting on or after this date (YYYY-MM-DD).
+          required: false
+          schema:
+            type: string
+            format: date
+          example: '2024-01-01'
+        - name: start_date_to
+          in: query
+          description: Filter campaigns starting on or before this date (YYYY-MM-DD).
+          required: false
+          schema:
+            type: string
+            format: date
+          example: '2024-03-31'
+        - name: search
+          in: query
+          description: A generic search term to filter campaigns by title or description.
+          required: false
+          schema:
+            type: string
+          example: 'Welcome'
+        - name: page
+          in: query
+          description: Page number for pagination (1-indexed).
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+          example: 1
+        - name: limit
+          in: query
+          description: Number of campaigns to return per page.
+          schema:
+            type: integer
+            default: 25
+            minimum: 1
+            maximum: 100 # Max limit to prevent abuse
+          example: 25
+        - name: sort_by
+          in: query
+          description: Field to sort campaigns by (e.g., `created_at`, `start_datetime`, `title`).
+          required: false
+          schema:
+            type: string
+          example: 'start_datetime'
+        - name: sort_direction
+          in: query
+          description: Direction of sorting.
+          required: false
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+          example: 'desc'
+      responses:
+        '200':
+          description: A paginated list of campaigns retrieved successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Campaign'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+              example:
+                data:
+                  - id: 'cmp_7kdjf93hds8fl30'
+                    company_id: 'comp_780ew4kx3kdyjpa5'
+                    title: 'Spring Promotion 2024'
+                    description: 'Campaign targeting new customers with a 10% discount.'
+                    status: 'planned'
+                    message_type_id: 'mtp_whatsapp_hsm'
+                    message_template_id: 'tpl_welcome_promo_v2'
+                    contacts_and_data:
+                      data: { PROMO_CODE: 'SPRING10' }
+                      contacts: [{ mobile: '212611223344', data: { CUSTOMER_NAME: 'Omar' } }]
+                      notify_webhooks: true
+                    tags: ['promotion', 'spring-2024']
+                    start_datetime: '2024-05-15T10:00:00Z'
+                    end_datetime: '2024-05-20T18:00:00Z'
+                    terminate_datetime: null
+                    created_at: '2024-05-01T10:00:00Z'
+                    updated_at: '2024-05-01T12:30:00Z'
+                  - id: 'cmp_lmnop890qrstuvw'
+                    company_id: 'comp_780ew4kx3kdyjpa5'
+                    title: 'Welcome New Users - Onboarding Flow'
+                    description: null
+                    status: 'in_progress'
+                    message_type_id: 'mtp_whatsapp_hsm'
+                    message_template_id: 'tpl_onboarding_step1'
+                    contacts_and_data:
+                      contacts: [{ mobile: '212655667788', data: { CUSTOMER_NAME: 'Aisha' } }]
+                      notify_webhooks: true
+                    tags: ['onboarding', 'welcome_series']
+                    start_datetime: '2024-05-10T00:00:00Z'
+                    end_datetime: '2024-12-31T23:59:59Z' # Ongoing campaign
+                    terminate_datetime: null
+                    created_at: '2024-05-02T10:00:00Z'
+                    updated_at: '2024-05-02T12:30:00Z'
+                meta:
+                  total: 2
+                  count: 2
+                  per_page: 25
+                  current_page: 1
+                  total_pages: 1
+                  links: null
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntityError' # For invalid filter values
+        '429':
+          $ref: '#/components/responses/TooManyRequestsError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags: [Campaigns]
+      summary: Create Campaign
+      description: |
+        Creates a new marketing or notification campaign.
+
+        **Key Considerations for Campaign Creation:**
+        * **Message Template:** Ensure the `message_template_id` corresponds to an existing and approved template that is compatible with the specified `message_type_id` (e.g., WhatsApp HSM, SMS transactional).
+        * **Recipient Data:** The `contacts` array is mandatory and must contain at least one recipient. Each contact object must include at least one valid identifier (e.g., `mobile` for SMS, `wa_id` for WhatsApp, `email` for email campaigns) or a `third_id` referencing an existing Digishare contact.
+        * **Dynamic Variables:**
+            * `contacts_and_data.data`: Use this for global variables that apply to all recipients (e.g., `PROMO_CODE`). These values serve as defaults.
+            * `contacts[].data`: Use this for contact-specific variables, which will override any global defaults for that particular recipient (e.g., `CUSTOMER_NAME`).
+        * **Webhook Notifications:** To receive real-time message status webhooks (sent, delivered, failed, interacted) for this campaign, set `notify_webhooks: true` within the `contacts_and_data` object.
+        * **Internal Metadata (`_` field):** This optional field allows for specifying internal channel and provider settings, such as `channel` (e.g., "whatsapp") and `sender_label_id`.
+        * **Company ID:** The `company_id` is optional in the payload as it can often be derived from the authentication context. Provide it if the authenticated user/client manages campaigns across multiple company accounts.
+        * **Server-Generated Fields:** The `id`, `terminate_datetime`, `created_at`, and `updated_at` fields for the campaign will be automatically generated by the server upon successful creation.
+      operationId: createCampaign
+      requestBody:
+        required: true
+        description: Campaign object to be created.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CampaignCreationPayload'
+            examples:
+              basic_planned_whatsapp_campaign:
+                summary: 'Basic Planned WhatsApp Campaign'
+                value:
+                  title: 'Summer Sale Announcement - June 2024'
+                  description: 'Notify all subscribers about the upcoming summer sale with a 15% discount code.'
+                  status: 'planned'
+                  message_type_id: 'mtp_whatsapp_hsm' # Assuming this is a WhatsApp HSM type
+                  message_template_id: 'tpl_summer_sale_promo_june24' # Registered template ID
+                  contacts_and_data:
+                    data: # Global variables for the template
+                      PROMO_CODE: 'SUMMER24SAVE'
+                      SALE_END_DATE: '2024-08-31'
+                      DEFAULT_GREETING: 'Valued Customer' # Added a default greeting
+                    contacts:
+                      - wa_id: '212611223344' # Changed from mobile to wa_id
+                        data: { CUSTOMER_NAME: 'Omar K.' } # Contact-specific variable overriding a potential global CUSTOMER_NAME
+                      - wa_id: '212655667788' # Changed from mobile to wa_id
+                        data: { CUSTOMER_NAME: 'Fatima Z.' }
+                      - wa_id: '212600110011' # Changed from mobile to wa_id. This contact will use global DEFAULT_GREETING if template uses it and no specific CUSTOMER_NAME
+                    notify_webhooks: true # Enable webhooks for this campaign
+                  tags: ['sale', 'summer_2024', 'whatsapp', 'subscribers_all']
+                  start_datetime: '2024-06-01T08:00:00Z'
+                  end_datetime: '2024-06-01T18:00:00Z' # One-day campaign
+                  _: # Example of internal metadata
+                    channel: 'whatsapp'
+                    sender_label_id: '4w9y6pmg49mx5rjb'
+              ongoing_draft_sms_campaign_with_email:
+                summary: 'Ongoing Draft SMS Campaign with Email Contacts and Mixed Data'
+                value:
+                  title: 'Personalized Birthday Greetings - SMS/Email Hybrid'
+                  status: 'draft' # Still in planning
+                  message_type_id: 'mtp_sms_transactional' # SMS message type (assuming it can take email as contact based on backend)
+                  message_template_id: 'tpl_sms_birthday_greeting' # SMS template
+                  contacts_and_data:
+                    data:
+                      COMPANY_NAME: 'DigiShare Fun' # Global variable
+                      DEFAULT_GREETING: 'Dear Valued User'
+                    contacts:
+                      - mobile: '212600000001'
+                        data:
+                          { FIRST_NAME: 'Alice', BIRTHDAY_MONTH: 'July', LOYALTY_STATUS: 'Gold' }
+                      - email: 'bob@example.com' # Example of email as a contact identifier
+                        data:
+                          { FIRST_NAME: 'Bob', BIRTHDAY_MONTH: 'August', LOYALTY_STATUS: 'Silver' }
+                    notify_webhooks: false # Webhooks disabled for this one
+                  tags: ['birthday', 'sms', 'email', 'personalized', 'ongoing']
+                  start_datetime: '2024-07-01T00:00:00Z' # Start of ongoing period
+                  end_datetime: null # No specific end date for an ongoing draft
+                  company_id: 'comp_example_sms_company' # Explicitly setting company_id
+              whatsapp_authentication_otp_campaign:
+                summary: 'WhatsApp OTP Authentication Campaign (Transactional)'
+                value:
+                  title: 'User OTP Delivery'
+                  description: 'Send One-Time Passwords via WhatsApp for user authentication.'
+                  status: 'planned' # Could be 'in_progress' if always active
+                  message_type_id: 'mtp_whatsapp_otp' # Specific message type for OTP (non-marketing)
+                  message_template_id: 'tpl_whatsapp_otp_code_v1' # Pre-approved OTP template
+                  contacts_and_data:
+                    data: {} # No global data usually for OTP templates, as vars are per contact
+                    contacts:
+                      - wa_id: '212612345678' # Changed from mobile to wa_id
+                        data: { OTP_CODE: '123456', EXPIRY_MINUTES: '5' } # OTP code and expiry
+                    notify_webhooks: true # Important for delivery confirmation
+                  tags: ['authentication', 'otp', 'whatsapp', 'transactional']
+                  start_datetime: '2024-06-15T00:00:00Z' # Set to run immediately or specific time
+                  end_datetime: '2024-12-31T23:59:59Z' # Long-running for transactional
+                  _:
+                    channel: 'whatsapp'
+                    sender_label_id: '4w9y6pmg49mx5rjb' # Example from CURL
+              email_campaign_using_third_ids:
+                summary: 'Email Campaign Targeting Existing Third Parties'
+                value:
+                  title: 'Exclusive Offer for VIP Clients'
+                  description: 'Send a special email offer to a segment of VIP clients defined in Digishare.'
+                  status: 'planned'
+                  message_type_id: 'mtp_email_promotional' # Email message type
+                  message_template_id: 'tpl_email_vip_offer_2024' # Email template
+                  contacts_and_data:
+                    data:
+                      SENDER_NAME: 'Digi Marketing Team'
+                      DISCOUNT_RATE: '20%'
+                      PRODUCT_HIGHLIGHT: 'Premium Service Package'
+                    contacts:
+                      - third_id: 'thd_vipclient_001' # Referencing an existing Third Party by ID
+                        data: { CUSTOMER_NAME: 'Mr. Jean Dupont' } # Override data for this specific Third
+                      - third_id: 'thd_vipclient_002'
+                        data: { CUSTOMER_NAME: 'Ms. Sarah Chen' }
+                      - third_id: 'thd_vipclient_003' # This Third will use their name from record or global DEFAULT_GREETING
+                    notify_webhooks: true # Get delivery and open/click tracking
+                  tags: ['email', 'vip', 'exclusive_offer', 'client_segment']
+                  start_datetime: '2024-07-05T09:00:00Z'
+                  end_datetime: '2024-07-10T17:00:00Z'
+      responses:
+        '201':
+          description: Campaign created successfully. The response body contains the newly created campaign object, including its server-assigned `id` and other generated fields.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Campaign' # Returns the full campaign object
+              example: # Mirrored from basic_planned_whatsapp_campaign example, with server-generated fields
+                id: 'cmp_newlycreated1ab2c3'
+                company_id: 'comp_780ew4kx3kdyjpa5' # Assuming this is derived from auth context
+                title: 'Summer Sale Announcement - June 2024'
+                description: 'Notify all subscribers about the upcoming summer sale with a 15% discount code.'
+                status: 'planned'
+                message_type_id: 'mtp_whatsapp_hsm'
+                message_template_id: 'tpl_summer_sale_promo_june24'
+                contacts_and_data:
+                  data:
+                    SALE_PERCENTAGE: '15%'
+                    SALE_END_DATE: 'June 30, 2024'
+                  contacts:
+                    - mobile: '212611223344'
+                      data: { CUSTOMER_NAME: 'Omar K.' }
+                    - mobile: '212655667788'
+                      data: { CUSTOMER_NAME: 'Fatima Z.' }
+                    - mobile: '212600110011'
+                  notify_webhooks: true
+                tags: ['sale', 'summer_2024', 'whatsapp', 'subscribers_all']
+                start_datetime: '2024-06-01T08:00:00Z'
+                end_datetime: '2024-06-01T18:00:00Z'
+                terminate_datetime: null
+                created_at: '2024-05-20T10:00:00Z' # Server-generated
+                updated_at: '2024-05-20T10:00:00Z' # Server-generated
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntityError' # For validation errors in the payload
+        '429':
+          $ref: '#/components/responses/TooManyRequestsError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # --- Tickets Endpoints (Example) ---
+  /tickets:
+    get:
+      tags: [Tickets]
+      summary: List Support Tickets
+      description: |
+        Retrieves a paginated list of support tickets.
+        Supports filtering by various criteria like status, priority, assigned agent, dates, etc.
+      operationId: listTickets
+      parameters:
+        - name: page
+          in: query
+          description: Page number for pagination (1-indexed).
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+        - name: limit
+          in: query
+          description: Number of tickets to return per page.
+          schema:
+            type: integer
+            default: 25
+            minimum: 1
+            maximum: 100
+        - name: ticket_status_id
+          in: query
+          description: Filter tickets by their status ID (e.g., `tstat_open`, `tstat_pending_customer`).
+          required: false
+          schema:
+            type: string
+          example: 'tstat_open'
+        - name: priority_id
+          in: query
+          description: Filter tickets by their priority ID.
+          required: false
+          schema:
+            type: integer # Or string, depending on ID format
+          example: 3 # Assuming 3 is 'High'
+        - name: handler_id
+          in: query
+          description: Filter tickets by the ID of the assigned agent or team.
+          required: false
+          schema:
+            type: string
+          example: 'usr_agent_support_team_alpha'
+        - name: third_id
+          in: query
+          description: Filter tickets associated with a specific Third Party (contact/client) ID.
+          required: false
+          schema:
+            type: string
+          example: 'thd_780ew4kx3kdyjpa5'
+        - name: created_from
+          in: query
+          description: Filter tickets created on or after this date (YYYY-MM-DD).
+          required: false
+          schema:
+            type: string
+            format: date
+          example: '2024-05-01'
+        - name: created_to
+          in: query
+          description: Filter tickets created on or before this date (YYYY-MM-DD).
+          required: false
+          schema:
+            type: string
+            format: date
+          example: '2024-05-31'
+        - name: search
+          in: query
+          description: A generic search term to filter tickets by subject, ticket number, or customer name/email.
+          required: false
+          schema:
+            type: string
+          example: 'login issue'
+        - name: sort_by
+          in: query
+          description: Field to sort tickets by (e.g., `created_at`, `updated_at`, `priority_id`, `demand_date`).
+          required: false
+          schema:
+            type: string
+          example: 'updated_at'
+        - name: sort_direction
+          in: query
+          description: Direction of sorting.
+          required: false
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+          example: 'desc'
+      responses:
+        '200':
+          description: A paginated list of support tickets retrieved successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Ticket'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+              example:
+                data:
+                  - id: 'tkt_a1b2c3d4e5f6a7b8'
+                    ticket_number: 'T20240510-00789'
+                    subject: 'Issue with login after password reset'
+                    priority_id: 3
+                    type_ticket_id: 'ttyp_incident'
+                    ticket_status_id: 'tstat_open'
+                    channel_id: 'chan_webform_support'
+                    external_id: 'CRM-TICKET-98765B'
+                    comment: "User 'john.doe@example.com' reports being unable to log in..."
+                    demand_date: '2024-05-10T09:30:00Z'
+                    date: '2024-05-10T09:35:10Z'
+                    tags: ['login_issue', 'password_reset', 'urgent_attention']
+                    information: { fullname: 'John Doe', email: 'john.doe@example.com' }
+                    third_id: 'thd_johndoe123'
+                    company_id: 'comp_xyzcorp456'
+                    creator_id: 'usr_system_webform'
+                    handler_id: 'usr_agent_support_team_alpha'
+                    handler_type: 'team'
+                    category: 'Technical Support'
+                    created_at: '2024-05-10T09:35:10Z'
+                    updated_at: '2024-05-10T10:15:00Z'
+                    date_status: '2024-05-10T09:35:10Z'
+                    lang: 'en'
+                    data: {}
+                  - id: 'tkt_f6g7h8i9j0k1l2m3'
+                    ticket_number: 'T20240509-00654'
+                    subject: 'Question about billing cycle for Enterprise Plan'
+                    priority_id: 2
+                    type_ticket_id: 'ttyp_question'
+                    ticket_status_id: 'tstat_pending_customer_reply'
+                    channel_id: 'chan_email_support'
+                    comment: 'Customer inquiring about the start date of their billing cycle.'
+                    demand_date: '2024-05-09T15:00:00Z'
+                    date: '2024-05-09T15:02:30Z'
+                    tags: ['billing', 'enterprise_plan', 'inquiry']
+                    information:
+                      {
+                        fullname: 'Jane Smith',
+                        email: 'jane.smith@example.net',
+                        company_name: 'Smith Solutions',
+                      }
+                    third_id: 'thd_janesmith789'
+                    company_id: 'comp_smithsolutions123'
+                    creator_id: 'usr_email_parser_support'
+                    handler_id: 'usr_agent_billing_team'
+                    handler_type: 'team'
+                    category: 'Billing'
+                    created_at: '2024-05-09T15:02:30Z'
+                    updated_at: '2024-05-09T16:20:00Z'
+                    date_status: '2024-05-09T16:20:00Z'
+                    lang: 'en'
+                    data: {}
+                meta:
+                  total: 2
+                  count: 2
+                  per_page: 25
+                  current_page: 1
+                  total_pages: 1
+                  links: null
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntityError'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags: [Tickets]
+      summary: Create Support Ticket
+      description: |
+        Creates a new support ticket in the Digishare system.
+        - The `information` field is flexible and should be used to pass client details and specific issue information.
+        - Server-generated fields include `id`, `ticket_number`, `created_at`, `updated_at`, `date`, `date_status`, `creator_id`, and `creation_mode`.
+      operationId: createTicket
+      requestBody:
+        description: Ticket object to be created.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TicketCreationPayload'
+            example:
+              subject: 'Password Reset Request - User Locked Out'
+              priority_id: 4 # Urgent
+              type_ticket_id: 'ttyp_problem' # Problem type
+              ticket_status_id: 'tstat_new' # Initial status
+              channel_id: 'chan_live_chat_escalation' # Originated from chat
+              company_id: 'comp_780ew4kx3kdyjpa5' # Associated Digishare company account
+              third_id: 'thd_user_xyz789abc' # Link to the customer's Third Party record
+              comment: "User 'testuser@example.com' initiated password reset via live chat but did not receive the email. Account is now locked after too many attempts."
+              demand_date: '2024-05-11T11:00:00Z' # Time customer reported
+              tags: ['password_reset', 'account_locked', 'urgent', 'live_chat']
+              information: # Custom fields and client info
+                fullname: 'Test User One'
+                email: 'testuser@example.com'
+                contact_phone: '212677889900'
+                live_chat_session_id: 'chat_sess_abc123def456'
+                last_known_ip: '192.168.1.100'
+              lang: 'fr' # Language of the customer/ticket
+              data: {}
+              # handler_id and handler_type might be set if auto-assignment rules apply
+      responses:
+        '201':
+          description: Ticket created successfully. The response body contains the newly created ticket object, including all server-generated fields.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ticket'
+              example: # Example of a created ticket response
+                id: 'tkt_newlycreated2xy3z4'
+                ticket_number: 'T20240511-00999' # Server-generated
+                subject: 'Password Reset Request - User Locked Out'
+                priority_id: 4
+                type_ticket_id: 'ttyp_problem'
+                ticket_status_id: 'tstat_new'
+                channel_id: 'chan_live_chat_escalation'
+                external_id: null
+                comment: "User 'testuser@example.com' initiated password reset via live chat but did not receive the email. Account is now locked after too many attempts."
+                demand_date: '2024-05-11T11:00:00Z'
+                date: '2024-05-11T11:01:05Z' # Server-generated (creation time in system)
+                tags: ['password_reset', 'account_locked', 'urgent', 'live_chat']
+                information:
+                  fullname: 'Test User One'
+                  email: 'testuser@example.com'
+                  contact_phone: '212677889900'
+                  live_chat_session_id: 'chat_sess_abc123def456'
+                  last_known_ip: '192.168.1.100'
+                third_id: 'thd_user_xyz789abc'
+                company_id: 'comp_780ew4kx3kdyjpa5'
+                source_id: null # Could be set by system if channel implies a source
+                conversation_id: 'conv_livechat_xyz123abc' # If linked from chat
+                creator_id: 'usr_api_client_integration_001' # Or agent ID if created manually
+                creation_mode: 'api' # Or "manual_agent", "chat_escalation"
+                handler_id: null # Or auto-assigned ID
+                handler_type: null
+                category: 'Technical Support' # Default or derived
+                note: null
+                closed_at: null
+                date_status: '2024-05-11T11:01:05Z' # Same as creation for new tickets
+                locked: false
+                locked_at: null
+                lang: 'fr'
+                data: {}
+                created_at: '2024-05-11T11:01:05Z' # DB record creation time
+                updated_at: '2024-05-11T11:01:05Z' # DB record update time
+                archived_at: null
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntityError' # For validation errors
+        '429':
+          $ref: '#/components/responses/TooManyRequestsError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # --- Message Templates Endpoint (Example) ---
+  /message_templates:
+    get:
+      tags: [Message Templates]
+      summary: List Message Templates
+      description: |
+        Fetches a paginated list of available message templates, typically filtered by `company_id`.
+        Supports searching by template name/code and other filtering options.
+      operationId: listMessageTemplates
+      parameters:
+        - name: company_id
+          in: query
+          schema:
+            type: string
+          required: true
+          description: The ID of the company account in Digishare whose message templates are being requested.
+          example: 'comp_780ew4kx3kdyjpa5'
+        - name: message_type_id
+          in: query
+          schema:
+            type: string
+          required: false
+          description: Filter templates by a specific message type ID (e.g., to get only WhatsApp HSM templates).
+          example: 'mtyp_r79wdekbalz5jn48'
+        - name: is_used # Filter by active/archived status
+          in: query
+          schema:
+            type: integer
+            enum: [0, 1]
+          required: false
+          description: Filter templates by their usability status (1 for active/usable, 0 for archived/disabled).
+          example: 1
+        - name: search
+          in: query
+          schema:
+            type: string
+          required: false
+          description: A search term to filter templates by their `title` or `code` (template name).
+          example: 'welcome'
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+          description: Page number for pagination (1-indexed).
+          example: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 25
+            minimum: 1
+            maximum: 100
+          description: Number of message templates to return per page.
+          example: 25
+        - name: sort_by
+          in: query
+          description: Field to sort templates by (e.g., `created_at`, `updated_at`, `title`, `code`).
+          required: false
+          schema:
+            type: string
+          example: '-updated_at'
+      responses:
+        '200':
+          description: A paginated list of message templates matching the specified criteria.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MessageTemplate'
+                  meta:
+                    type: object
+                    properties:
+                      pagination:
+                        $ref: '#/components/schemas/PaginationMeta'
+                required:
+                  - data
+                  - meta
+              example:
+                data:
+                  - id: 'mtpl_wn65opmdnal84r7b'
+                    company_id: 'comp_780ew4kx3kdyjpa5'
+                    message_type_id: 'mtyp_r79wdekbalz5jn48'
+                    code: 'welcome_customer_promo_v3'
+                    title: 'WhatsApp - Welcome New Customer with Promo (Version 3)'
+                    template:
+                      name: 'welcome_customer_promo_v3'
+                      language: 'en_US'
+                      components:
+                        - type: 'HEADER'
+                          format: 'TEXT'
+                          text: 'Welcome to Our Brand, {{1}}!'
+                        - type: 'BODY'
+                          text: 'Hello {{1}}, thank you for joining us! Use promo code {{2}} for 10% off.'
+                          example: { body_text: [['Customer Name'], ['WELCOME10']] }
+                        - type: 'BUTTONS'
+                          buttons:
+                            - type: 'QUICK_REPLY'
+                              text: 'Shop Now'
+                    is_template: 1
+                    is_used: 1
+                    api_provider_instant_id: 'aprovinst_whatsapp_primary_001'
+                    created_at: '2024-02-07T14:15:25.000000Z'
+                    updated_at: '2025-04-09T11:18:16.000000Z'
+                  - id: 'mtpl_sms_order_confirm_v1'
+                    company_id: 'comp_780ew4kx3kdyjpa5'
+                    message_type_id: 'mtyp_sms_transactional'
+                    code: 'sms_order_confirmation'
+                    title: 'SMS - Order Confirmation'
+                    template:
+                      body: 'Hi {{1}}, your order #{{2}} has been confirmed and will ship soon. Track it here: {{3}}'
+                    is_template: 1
+                    is_used: 1
+                    api_provider_instant_id: 'aprovinst_sms_gateway_main'
+                    created_at: '2024-03-10T10:00:00.000000Z'
+                    updated_at: '2025-01-15T09:00:00.000000Z'
+                meta:
+                  pagination:
+                    total: 53
+                    count: 2
+                    per_page: 25
+                    current_page: 1
+                    total_pages: 3
+                    links:
+                      next: 'https://api.digishare.ma/v1/message_templates?company_id=comp_780ew4kx3kdyjpa5&page=2&limit=25'
+                      previous: null
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntityError'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT # Or 'Opaque' if it's not a JWT
+      description: |
+        Personal Access Token authentication.
+        Obtain your token from the Digishare UI ([Personal Access Token creation page](https://app.digishare.ma/personal-access-tokens/create)).
+        Include the token in the `Authorization` header prefixed with `Bearer `.
+        Example: `Authorization: Bearer YOUR_PERSONAL_ACCESS_TOKEN`
+    clientCredentialsAuth:
+      type: oauth2
+      description: |
+        OAuth 2.0 Client Credentials Grant Flow.
+        Use this flow if your application is acting on its own behalf (not on behalf of a user).
+        Obtain `Client ID` and `Client Secret` from the [Client Applications page](https://app.digishare.ma/applications).
+        Then, exchange them for an access token at the `tokenUrl`.
+      flows:
+        clientCredentials:
+          tokenUrl: https://api.digishare.ma/v1/oauth/token
+          scopes: {} # Define scopes here if your API uses them, e.g., campaigns:read, tickets:write
+  responses:
+    UnauthorizedError:
+      description: Authentication failed. The access token is missing, invalid, malformed, or expired. Ensure you are providing a valid token via Bearer authentication or OAuth2.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: Unauthenticated.
+    ForbiddenError:
+      description: Access denied. The authenticated entity (user or client) does not have the necessary permissions to perform this action or access the requested resource.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: Forbidden. You do not have permission to access this resource.
+    NotFoundError:
+      description: The requested resource could not be found. Check the resource ID and the request path.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: Resource not found.
+              resource_id: # Example of adding more context
+                type: string
+                example: 'cmp_invalid_id_123'
+    UnprocessableEntityError: # HTTP 422
+      description: The request was well-formed and understood, but contained semantic errors (e.g., validation failed for one or more fields). The response body includes details about the specific errors.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: The given data was invalid.
+              errors:
+                type: object
+                description: An object where keys are the invalid field names and values are arrays of error messages for that field.
+                additionalProperties:
+                  type: array
+                  items:
+                    type: string
+                example:
+                  title:
+                    ['The title field is required.', 'The title must be at least 5 characters.']
+                  start_datetime: ['The start datetime must be a date after or equal to today.']
+                  'contacts_and_data.contacts.0.mobile':
+                    ['The mobile field for the first contact is invalid or missing.']
+    BadRequestError: # HTTP 400
+      description: The server could not process the request due to a client error (e.g., malformed request syntax, invalid JSON structure, missing required parameters not covered by 422 validation).
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: Invalid request payload.
+              details:
+                type: string
+                nullable: true
+                example: Cannot parse JSON body due to unexpected token at position 42.
+    TooManyRequestsError: # HTTP 429
+      description: Rate limit exceeded. You have made too many requests in a given amount of time. Please wait before trying again.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: Too many requests. Please try again later.
+      headers:
+        Retry-After:
+          description: The number of seconds to wait before making another request.
+          schema:
+            type: integer
+            example: 60
+        X-RateLimit-Limit:
+          description: The maximum number of requests allowed in the current time window.
+          schema:
+            type: integer
+            example: 1000
+        X-RateLimit-Remaining:
+          description: The number of requests remaining in the current time window.
+          schema:
+            type: integer
+            example: 999
+        X-RateLimit-Reset:
+          description: The Coordinated Universal Time (UTC) epoch seconds when the current rate limit window resets.
+          schema:
+            type: integer
+            example: 1678886400
+    InternalServerError: # HTTP 500
+      description: An unexpected error occurred on the server side. If this persists, please contact support.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: Internal Server Error.
+              request_id:
+                type: string
+                format: uuid
+                description: A unique identifier for the request, which can be used for tracing and support.
+                example: 'a1b2c3d4-e5f6-7890-1234-567890abcdef'
+
+  schemas:
+    # --- Common Schemas ---
+    PaginationMeta:
+      title: Pagination Metadata
+      type: object
+      description: Provides metadata for paginated API responses, including total counts and links to navigate through pages.
+      properties:
+        total:
+          type: integer
+          description: Total number of items available across all pages that match the query.
+          example: 1532
+        count:
+          type: integer
+          description: Number of items included in the current page's `data` array.
+          example: 25
+        per_page:
+          type: integer
+          description: The number of items requested per page (as specified by the `limit` parameter).
+          example: 25
+        current_page:
+          type: integer
+          description: The current page number being displayed.
+          example: 1
+        total_pages:
+          type: integer
+          description: The total number of pages available based on `total` items and `per_page` limit.
+          example: 62
+        links:
+          type: object
+          nullable: true
+          description: Contains URLs for navigating to the next and previous pages, if applicable.
+          properties:
+            next:
+              type: string
+              format: uri
+              nullable: true
+              description: URL for the next page of results. `null` if this is the last page.
+              example: 'https://api.digishare.ma/v1/campaigns?page=2&limit=25'
+            previous:
+              type: string
+              format: uri
+              nullable: true
+              description: URL for the previous page of results. `null` if this is the first page.
+              example: null
+      required:
+        - total
+        - count
+        - per_page
+        - current_page
+        - total_pages
+
+    # New schema for the '_' field
+    CampaignMetadata:
+      title: Campaign Channel Metadata
+      type: object
+      description: Internal metadata related to the campaign's channel and provider settings, often used for routing.
+      properties:
+        channel:
+          type: string
+          description: The communication channel for the campaign (e.g., `whatsapp`, `sms`).
+          example: 'whatsapp'
+        provider_id:
+          type: string
+          nullable: true
+          description: Identifier of the specific API provider instance (`ApiProviderInstance ID`) used for this campaign.
+          example: 'zryw5xlrqbm06bqa'
+        conversation_id:
+          type: string
+          nullable: true
+          description: >
+            Optional trigger type for when this campaign should be injected into the live chat interface.
+            Supported values:
+            - `replay-button`: Inject when user clicks on a reply button.
+            - `message-out`: Inject when a message is sent.
+            - `conversed`: Inject when the user sends a text message.
+            - `any-reaction`: Applies to both `replay-button` and `conversed`.          example: 'message-out'
+        sender_label_id:
+          type: string
+          nullable: true
+          description: Identifier for a specific sender label or number profile to be used for the campaign.
+          example: '4w9y6pmg49mx5rjb'
+
+    # New schema for header data in contacts_and_data.data
+    CampaignHeaderData:
+      title: Campaign Message Header Data
+      type: object
+      description: |
+        Defines content for a message header, typically used for media (image, video, document) or dynamic text headers.
+        For media headers, either `id` (Digishare file ID) or `link` (external URL) is usually required.
+      properties:
+        id:
+          type: string
+          nullable: true
+          description: Internal ID of the uploaded media file in Digishare (for image/video/document headers).
+          example: 'dxg6ynlpnyk87awb' # File ID in Digishare
+        link:
+          type: string
+          format: uri
+          nullable: true
+          description: Publicly accessible URL to the media file (e.g., PDF link, image URL).
+          example: 'https://example.com/media/document.pdf'
+        filename:
+          type: string
+          nullable: true
+          description: Original filename of the media, used for display (e.g., for document headers).
+          example: 'demofile.pdf'
+        provider:
+          type: string
+          nullable: true
+          description: Optional string indicating the original provider/source of the media, if tracked.
+          example: 'itinarea'
+
+    # --- Campaign Schemas ---
+    CampaignBase:
+      title: Campaign Base Properties
+      type: object
+      description: Common properties for a campaign, excluding server-generated identifiers and timestamps.
+      properties:
+        title:
+          type: string
+          description: Name or title of the campaign. Must be between 3 and 255 characters.
+          example: 'Spring Promotion 2024'
+          minLength: 3
+          maxLength: 255
+        description:
+          type: string
+          nullable: true
+          description: Optional detailed description for the campaign.
+          example: 'This campaign targets new customers with a 10% discount on their first purchase.'
+        status:
+          type: string
+          enum: [planned, in_progress, completed, cancelled, draft, failed, paused]
+          description: |
+            Current status of the campaign:
+            - `planned`: Scheduled to start.
+            - `in_progress`: Currently active and sending messages.
+            - `completed`: Finished successfully.
+            - `cancelled`: Cancelled before completion.
+            - `draft`: Saved but not yet scheduled or activated.
+            - `failed`: Encountered critical errors and could not complete.
+            - `paused`: Temporarily stopped, can be resumed.
+          example: 'planned'
+        message_type_id:
+          type: string
+          description: |
+            Identifier for the type of message being sent (e.g., `mtp_whatsapp_hsm` for WhatsApp HSM, `mtp_sms_transactional`).
+            This links to a pre-configured message type, which determines available channels and template requirements.
+          example: 'mtp_whatsapp_hsm'
+        message_template_id:
+          type: string
+          description: |
+            Identifier of the specific message template to be used for this campaign.
+            This template must be approved (if required by the channel/provider) and compatible with the `message_type_id`.
+          example: 'tpl_welcome_promo_v2' # Example: tpl_ (template) prefix
+        contacts_and_data:
+          type: object
+          description: Defines the recipients, global data, and webhook notification settings for the campaign.
+          properties:
+            data:
+              type: object
+              description: |
+                Key-value pairs for global variable substitution in the message template.
+                These keys should match placeholders defined in the `message_template_id` (e.g., `{{FIRST_NAME}}`, `{{PROMO_CODE}}`).
+                Values provided here will be used as defaults if not overridden by contact-specific data.
+              additionalProperties: true # Allows any type of property for dynamic variables
+              properties: # Explicitly list common dynamic data, for better documentation but keep additionalProperties
+                header:
+                  $ref: '#/components/schemas/CampaignHeaderData'
+                  description: Optional dynamic header content for the message, e.g., media attachments.
+                # Other specific variables like body1, body2 etc can be added via additionalProperties
+              example:
+                PROMO_CODE: 'SUMMER24SAVE'
+                SALE_END_DATE: '2024-08-31'
+                header: # Example of a dynamic header with an internal ID
+                  id: 'img_promo_banner_xyz'
+                  filename: 'promo_banner.png'
+            contacts:
+              type: array
+              description: |
+                List of contacts to receive the campaign message. Each contact object must contain at least one valid identifier
+                (e.g., `mobile` for SMS, `wa_id` for WhatsApp, `email` for email campaigns) or a `third_id`.
+              items:
+                type: object
+                properties:
+                  mobile:
+                    type: string
+                    description: Recipient's mobile number, typically in E.164 international format (e.g., `+212600000000` or `212600000000`). Required for SMS campaigns.
+                    example: '212611223344'
+                  wa_id:
+                    type: string
+                    description: Recipient's WhatsApp ID, typically their phone number in E.164 international format. Required for WhatsApp campaigns.
+                    example: '212777786877'
+                  email:
+                    type: string
+                    format: email
+                    description: Recipient's email address. Required for email campaigns.
+                    example: 'recipient@example.com'
+                  third_id:
+                    type: string
+                    description: The ID of an existing Third Party entity in Digishare. If provided, the system will use the contact information (mobile/email/wa_id) associated with this Third Party.
+                    example: 'thd_existingcontact_abc'
+                  data:
+                    type: object
+                    description: |
+                      Optional key-value pairs specific to this contact, overriding global defaults from `contacts_and_data.data`.
+                      For example, if `contacts_and_data.data` has `CUSTOMER_NAME: "Valued Customer"`, and a specific contact has `data: { CUSTOMER_NAME: "Alice" }`, then "Alice" will be used for that contact.
+                    additionalProperties: true
+                    properties: # Explicitly list common dynamic data specific to contacts
+                      header: # Contact-specific dynamic header
+                        $ref: '#/components/schemas/CampaignHeaderData'
+                        description: Optional contact-specific dynamic header content.
+                example:
+                  CUSTOMER_NAME: 'Salma' # Overrides the global "Valued Customer"
+                  LOYALTY_POINTS: 500
+                  body1: 'Personalized message part 1' # Example from CURL
+                  OTP_CODE: '123456' # Example from OTP campaign
+                # The validation for requiring at least one identifier (mobile, wa_id, email, or third_id)
+                # within the `items` of `contacts` array cannot be directly expressed with OpenAPI 3.0 `required`.
+                # This must be enforced by backend validation.
+              minItems: 1 # A campaign should have at least one contact
+            notify_webhooks:
+              type: boolean
+              description: Set to `true` to enable webhook notifications for message events (sent, delivered, failed, interacted) related to this specific campaign. Defaults to `false`. If not provided, behavior might inherit from global/company settings.
+              default: false
+              example: true
+          required:
+            - contacts # Contacts array is always required
+        tags:
+          type: array
+          items:
+            type: string
+          nullable: true
+          description: Optional tags for categorizing or filtering the campaign (e.g., `promotion`, `newsletter`, `urgent`).
+          example: ['promotion', 'spring-2024', 'new-customers']
+        start_datetime:
+          type: string
+          format: date-time
+          description: The scheduled start date and time for the campaign in UTC (ISO 8601 format, e.g., `2024-05-15T10:00:00Z`).
+          example: '2024-05-15T10:00:00Z'
+        end_datetime:
+          type: string
+          format: date-time
+          nullable: true
+          description: The scheduled end date and time for the campaign in UTC (ISO 8601 format). Can be `null` for ongoing campaigns. Typically required if `status` is not `completed` or `cancelled`.
+          example: '2024-05-20T18:00:00Z'
+      required:
+        - title
+        - status
+        - message_type_id
+        - message_template_id
+        - contacts_and_data
+        - start_datetime
+
+    CampaignCreationPayload:
+      title: Campaign Creation Data
+      allOf:
+        - $ref: '#/components/schemas/CampaignBase'
+        - type: object
+          properties:
+            company_id:
+              type: string
+              nullable: true # Optional if typically derived from auth context
+              description: The ID of the company account in Digishare this campaign belongs to. If not provided, it is usually derived from the authenticated user's context.
+              example: 'comp_780ew4kx3kdyjpa5'
+            _: # Internal metadata field for campaign creation
+              $ref: '#/components/schemas/CampaignMetadata'
+              description: Internal metadata related to channel and provider settings for the campaign.
+          required: # Adding '_' as a potentially required field for completeness based on CURL examples
+            - _ # This makes it explicit that this field is often used in creation.
+      description: Data required to create a new campaign. `id` and audit timestamps (`created_at`, `updated_at`, `terminate_datetime`) are server-generated and should not be provided in the request.
+
+    CampaignUpdatePayload:
+      title: Campaign Update Data
+      type: object
+      description: Data allowed for updating an existing campaign. Not all fields may be updatable after a campaign has started.
+      properties:
+        title:
+          type: string
+          description: New name or title of the campaign.
+          example: 'Extended Spring Promotion 2024'
+          minLength: 3
+          maxLength: 255
+        description:
+          type: string
+          nullable: true
+          description: Updated description for the campaign.
+          example: 'Campaign targeting new and existing customers with a 15% discount.'
+        status:
+          type: string
+          enum: [planned, in_progress, completed, cancelled, draft, failed, paused]
+          description: New status for the campaign. Certain status transitions may be restricted by business logic (e.g., cannot go from `completed` to `in_progress`).
+          example: 'paused'
+        # message_type_id and message_template_id are typically not updatable after creation or start.
+        contacts_and_data: # Define this only if partial updates to contacts_and_data are supported
+          type: object
+          description: |
+            Partial update for contacts and data. This allows adding new contacts or modifying global data.
+            *Note: Modifying `contacts` (e.g., adding/removing specific contacts) might depend on your backend's update logic.
+            Often, updating contacts for an `in_progress` campaign is not directly supported via PATCH; new contacts are added through separate API calls or a new campaign.*
+          properties:
+            data:
+              type: object
+              description: Key-value pairs for global variable substitution. Merges with existing global data.
+              additionalProperties: true
+              properties: # Explicitly list common dynamic data, for better documentation but keep additionalProperties
+                header:
+                  $ref: '#/components/schemas/CampaignHeaderData'
+                  description: Optional dynamic header content for the message, e.g., media attachments.
+              example:
+                PROMO_CODE: 'EXTRASAVE'
+                NEW_FIELD: 'Some Value'
+            add_contacts: # Example: If you support adding contacts to an existing campaign
+              type: array
+              description: List of new contacts to add to the campaign.
+              items:
+                type: object
+                properties:
+                  mobile:
+                    type: string
+                    example: '212699887766'
+                  wa_id:
+                    type: string
+                    example: '212777786877'
+                  email:
+                    type: string
+                    format: email
+                    example: 'another@example.com'
+                  third_id:
+                    type: string
+                    example: 'thd_newcontact_xyz'
+            notify_webhooks:
+              type: boolean
+              description: Update webhook notification setting.
+              example: false
+          required:
+            - contacts # Contacts array is always required
+        tags:
+          type: array
+          items:
+            type: string
+          nullable: true
+          description: Updated list of tags for the campaign.
+          example: ['promotion', 'spring-2024', 'all-customers', 'extended']
+        start_datetime:
+          type: string
+          format: date-time
+          description: New scheduled start date and time (UTC). Usually only updatable if campaign is in `draft` or `planned` status.
+          example: '2024-05-16T10:00:00Z'
+        end_datetime:
+          type: string
+          format: date-time
+          nullable: true
+          description: New scheduled end date and time (UTC).
+          example: '2024-05-22T18:00:00Z'
+
+    Campaign:
+      title: Campaign Resource
+      allOf:
+        - $ref: '#/components/schemas/CampaignBase'
+        - type: object
+          properties:
+            id:
+              type: string
+              description: Unique server-generated identifier for the campaign (e.g., `cmp_xxxxxxxxxx`). Read-only.
+              example: 'cmp_7kdjf93hds8fl30'
+              readOnly: true
+            company_id:
+              type: string
+              description: Identifier of the company this campaign belongs to. Read-only.
+              example: 'comp_780ew4kx3kdyjpa5'
+              readOnly: true
+            terminate_datetime:
+              type: string
+              format: date-time
+              nullable: true
+              description: The date and time when the campaign was forcefully terminated or naturally ended, if applicable (UTC). Read-only.
+              example: null
+              readOnly: true
+            created_at:
+              type: string
+              format: date-time
+              description: Timestamp of when the campaign was created in the system (UTC). Read-only.
+              example: '2024-05-01T10:00:00Z'
+              readOnly: true
+            updated_at:
+              type: string
+              format: date-time
+              description: Timestamp of when the campaign was last updated in the system (UTC). Read-only.
+              example: '2024-05-01T12:30:00Z'
+              readOnly: true
+          required:
+            - id
+            - company_id
+            - created_at
+            - updated_at
+
+    # --- Ticket Schemas ---
+    TicketBase:
+      title: Ticket Base Properties
+      type: object
+      description: Common properties for a support ticket.
+      properties:
+        subject:
+          type: string
+          description: The subject or title of the ticket. Clearly summarizes the issue or request.
+          example: 'Issue with login after password reset'
+          minLength: 5
+          maxLength: 255
+        priority_id:
+          type: integer # Or string if IDs are like "prio_high"
+          description: Identifier for the ticket priority level (e.g., 1=Low, 2=Medium, 3=High, 4=Urgent). Refer to your system's priority configuration.
+          example: 3 # Assuming 3 means High
+        type_ticket_id:
+          type: string # e.g., "ttyp_incident", "ttyp_question", "ttyp_problem", "ttyp_task"
+          description: Identifier for the type of ticket (e.g., incident, question, problem, task). Links to a predefined ticket type.
+          example: 'ttyp_incident'
+        ticket_status_id:
+          type: string # e.g., "tstat_open", "tstat_pending_customer", "tstat_in_progress", "tstat_resolved", "tstat_closed"
+          description: Identifier for the current status of the ticket. Links to a predefined ticket status.
+          example: 'tstat_open'
+        channel_id:
+          type: string
+          description: Identifier for the channel through which the ticket originated. Links to a predefined channel.
+          example: 'chan_webform_support'
+        external_id:
+          type: string
+          nullable: true
+          description: An optional external identifier for linking the ticket to another system (e.g., CRM ticket ID, issue tracker ID).
+          example: 'CRM-TICKET-98765B'
+        comment: # Often the first message or description
+          type: string
+          nullable: true
+          description: The initial comment, description of the issue, or first message from the customer when creating the ticket.
+          example: "User 'john.doe@example.com' reports being unable to log in since this morning. Error message 'Invalid Credentials' is shown despite multiple password reset attempts."
+        demand_date: # Renamed from 'date' in some original examples for clarity
+          type: string
+          format: date-time
+          description: The date and time the customer reported the issue or made the demand (UTC). This is often the actual time of the customer's first contact.
+          example: '2024-05-10T09:30:00Z'
+        tags:
+          type: array
+          items:
+            type: string
+          nullable: true
+          description: Optional tags for categorizing or filtering the ticket.
+          example: ['login_issue', 'password_reset', 'urgent_attention', 'web_portal_v2']
+        information:
+          type: object
+          description: |
+            A flexible key-value store for additional structured or unstructured information related to the ticket.
+            The structure can vary based on the ticket type, channel, or custom fields configured in Digishare.
+            Common fields might include:
+            - `fullname`: Customer's full name.
+            - `email`: Customer's email address.
+            - `phone`: Customer's phone number.
+            - `company_name`: Customer's company name.
+            - `product_name`: Specific product or service related to the issue.
+            - `os_version`: Operating system version, if relevant.
+            - `browser_version`: Browser version, if relevant for web issues.
+            Any custom fields defined in your Digishare setup for tickets will also appear here.
+          additionalProperties: true # Allows any custom fields
+          example:
+            fullname: 'Adil Chbada'
+            email: 'adil.chbada@example.com'
+            phone: '212612345678'
+            company_name: 'Digishare SARL'
+            user_id_customer_portal: 'usr_adil_ch'
+            last_login_attempt: '2024-05-10T09:25:00Z'
+            error_screenshot_url: 'https://files.digishare.ma/screenshots/error123.png'
+        third_id:
+          type: string
+          nullable: true
+          description: Identifier of the "Third" entity (contact/client) associated with this ticket. Essential for linking the ticket to a customer record.
+          example: 'thd_780ew4kx3kdyjpa5'
+        company_id: # Assuming tickets are tied to a company account in Digishare
+          type: string
+          description: Identifier of the company account in Digishare this ticket belongs to.
+          example: 'comp_780ew4kx3kdyjpa5'
+        source_id:
+          type: string
+          nullable: true
+          description: Identifier for the specific source of the ticket if more granular than `channel_id` (e.g., a particular email address `src_email_support_technical`, a specific web form `src_webform_technical_issue`).
+          example: 'src_email_support_technical'
+        conversation_id:
+          type: string
+          nullable: true
+          description: Identifier of a related conversation (e.g., a live chat session ID `conv_abc123xyz`) if the ticket originated from or is linked to it.
+          example: 'conv_livechat_xyz123abc'
+        handler_id:
+          type: string
+          nullable: true
+          description: Identifier of the user (agent) or team currently assigned to handle the ticket.
+          example: 'usr_agent_support_team_alpha' # Could be a user ID or a team ID
+        handler_type:
+          type: string
+          enum: [user, team, null]
+          nullable: true
+          description: "Type of the handler: 'user' if assigned to an individual agent, 'team' if assigned to a support team."
+          example: 'team'
+        category: # Could be a more structured category_id
+          type: string
+          nullable: true
+          description: Broad category of the ticket (e.g., Technical Support, Billing Inquiry, Sales Question, General Feedback).
+          example: 'Technical Support'
+        note: # Internal notes
+          type: string
+          nullable: true
+          description: Internal notes about the ticket, visible to support staff. Not typically seen by the customer.
+          example: 'Customer seems frustrated. Prioritize investigation. Checked logs, no obvious errors found yet.'
+        lang:
+          type: string
+          nullable: true
+          description: Language code (e.g., 'fr', 'en', 'ar') associated with the ticket, often derived from the client's preference or the communication channel.
+          example: 'fr'
+        data: # For truly custom, deeply nested, or array-based custom fields
+          type: object # Or array, depending on how you structure this
+          nullable: true
+          additionalProperties: true
+          description: Flexible field for additional custom structured data that doesn't fit well into `information` or top-level properties. Could be an object or an array of objects.
+          example:
+            {
+              'custom_form_submission_id': 'formXYZ_entry1005',
+              'related_order_ids': ['ORD-001', 'ORD-002'],
+            }
+      required:
+        - subject
+        - priority_id
+        - type_ticket_id
+        - ticket_status_id
+        - channel_id
+        - demand_date
+        - company_id # Assuming company_id is always required
+
+    TicketCreationPayload:
+      title: Ticket Creation Data
+      allOf:
+        - $ref: '#/components/schemas/TicketBase'
+      description: Data required to create a new support ticket. Server generates `id`, `ticket_number`, audit timestamps, etc.
+
+    TicketUpdatePayload:
+      title: Ticket Update Data
+      type: object
+      description: Data allowed for updating an existing ticket. Some fields like `creator_id` or `creation_mode` are typically not updatable.
+      properties:
+        subject:
+          type: string
+          example: 'URGENT: Issue with login after password reset - Escalated'
+        priority_id:
+          type: integer
+          example: 4 # Updated to Urgent
+        type_ticket_id:
+          type: string
+          example: 'ttyp_problem' # Changed from incident to problem
+        ticket_status_id:
+          type: string
+          example: 'tstat_in_progress_agent' # Status updated
+        channel_id: # Usually not changed, but possible
+          type: string
+          example: 'chan_phone_followup'
+        external_id:
+          type: string
+          nullable: true
+          example: 'CRM-TICKET-98765B-UPDATE1'
+        comment: # This might append to a thread or update the main description based on system logic
+          type: string
+          nullable: true
+          example: 'Agent called customer, gathered more details. Issue seems related to 2FA.'
+        tags:
+          type: array
+          items:
+            type: string
+          nullable: true
+          example:
+            [
+              'login_issue',
+              'password_reset',
+              'urgent_attention',
+              'web_portal_v2',
+              '2fa_problem',
+              'escalated_tier2',
+            ]
+        information:
+          type: object
+          additionalProperties: true
+          example:
+            fullname: 'Adil Chbada' # Unchanged
+            email: 'adil.chbada@example.com' # Unchanged
+            phone: '212612345678' # Unchanged
+            two_factor_method: 'SMS' # New information added
+            last_successful_login: '2024-05-09T08:00:00Z'
+        third_id: # Usually not changed unless correcting an error
+          type: string
+          nullable: true
+          example: 'thd_780ew4kx3kdyjpa5'
+        handler_id:
+          type: string
+          nullable: true
+          example: 'usr_agent_senior_tech_support_02' # Re-assigned
+        handler_type:
+          type: string
+          enum: [user, team, null]
+          nullable: true
+          example: 'user'
+        category:
+          type: string
+          nullable: true
+          example: 'Technical Support - Tier 2'
+        note:
+          type: string
+          nullable: true
+          example: 'Escalated to Tier 2 support due to complexity with 2FA. Senior agent assigned.'
+        lang:
+          type: string
+          nullable: true
+          example: 'fr'
+        data:
+          type: object
+          nullable: true
+          additionalProperties: true
+          example:
+            {
+              'escalation_reason': '2FA_FAILURE_PERSISTENT',
+              'tier1_agent_notes': 'Initial checks done, logs unclear.',
+            }
+        closed_at: # To close a ticket
+          type: string
+          format: date-time
+          nullable: true
+          example: '2024-05-12T17:00:00Z' # If resolving/closing
+
+    Ticket:
+      title: Ticket Resource
+      allOf:
+        - $ref: '#/components/schemas/TicketBase'
+        - type: object
+          properties:
+            id:
+              type: string
+              description: Unique server-generated identifier for the ticket (e.g., `tkt_xxxxxxxxxx`). Read-only.
+              example: 'tkt_a1b2c3d4e5f6a7b8'
+              readOnly: true
+            ticket_number:
+              type: string
+              nullable: true # Some systems might allow manual input, but usually server-generated
+              description: Unique, human-readable ticket number for display or reference (e.g., `T202405-00123`). Often server-generated.
+              example: 'T20240510-00789'
+              readOnly: true # If always server-generated
+            # demand_date is in TicketBase
+            date: # This is often the same as created_at or very close
+              type: string
+              format: date-time
+              nullable: true
+              description: The date and time the ticket was formally created in the Digishare system (UTC). Read-only.
+              example: '2024-05-10T09:35:10Z'
+              readOnly: true
+            creator_id:
+              type: string
+              nullable: true
+              description: Identifier of the user (agent, admin) or system entity (e.g., API client, email parser) that created the ticket. Read-only.
+              example: 'usr_api_client_integration_001'
+              readOnly: true
+            creation_mode:
+              type: string
+              nullable: true
+              description: Mode through which the ticket was created (e.g., 'manual_agent', 'api', 'email_parser', 'web_form', 'chat_escalation'). Read-only.
+              example: 'api'
+              readOnly: true
+            closed_at:
+              type: string
+              format: date-time
+              nullable: true
+              description: Timestamp when the ticket was moved to a closed status (UTC). `null` if not closed.
+              example: null # "2025-05-08T10:00:00Z" if closed
+              readOnly: true # Usually set by status change logic
+            date_status: # Timestamp of the last status change
+              type: string
+              format: date-time
+              nullable: true
+              description: Timestamp of the last status change for the ticket (UTC). Read-only.
+              example: '2025-05-06T14:50:13.000000Z'
+              readOnly: true
+            locked:
+              type: boolean
+              nullable: true # Default to false if not specified
+              description: Flag indicating if the ticket is currently locked for editing by another user or process.
+              example: false
+            locked_at:
+              type: string
+              format: date-time
+              nullable: true
+              description: Timestamp when the ticket was locked (UTC), if applicable.
+              example: null
+            created_at:
+              type: string
+              format: date-time
+              description: Timestamp when the ticket record was created in the database (UTC). Read-only.
+              example: '2024-08-01T14:21:27.000000Z'
+              readOnly: true
+            updated_at:
+              type: string
+              format: date-time
+              description: Timestamp when the ticket record was last updated in the database (UTC). Read-only.
+              example: '2025-05-06T14:50:13.000000Z'
+              readOnly: true
+            archived_at:
+              type: string
+              format: date-time
+              nullable: true
+              description: Timestamp when the ticket was archived (UTC). Archived tickets are typically hidden from active views but retained for records. Read-only.
+              example: null
+              readOnly: true
+          required:
+            - id
+            - ticket_number # If always present
+            - created_at
+            - updated_at
+            - date # if always present
+            - date_status # if always present
+
+    # --- Message Template Schemas ---
+    MessageTemplate:
+      title: Message Template Resource
+      description: Represents a pre-approved message template, essential for channels like WhatsApp Business API to ensure messages comply with provider policies and maintain consistency.
+      type: object
+      properties:
+        id:
+          type: string
+          description: The unique server-generated identifier of the message template. Read-only.
+          example: 'mtpl_wn65opmdnal84r7b' # mtpl_ prefix for message template
+          readOnly: true
+        company_id:
+          type: string
+          description: The ID of the company account in Digishare that this template belongs to. Read-only after creation.
+          example: 'comp_780ew4kx3kdyjpa5'
+          readOnly: true # Typically set on creation and not changed
+        message_type_id:
+          type: string
+          nullable: true
+          description: The ID of the message type this template is associated with (e.g., links to a WhatsApp HSM type, SMS type).
+          example: 'mtyp_r79wdekbalz5jn48' # mtyp_ prefix for message type
+        code: # This is often the "element name" for WhatsApp templates
+          type: string
+          nullable: true
+          description: A unique code or name assigned to the template, often used by providers like WhatsApp (e.g., the template name registered with Meta).
+          example: 'welcome_customer_promo_v3'
+        title: # Internal title for Digishare UI
+          type: string
+          description: The internal title or descriptive name of the message template as it appears in the Digishare platform.
+          example: 'WhatsApp - Welcome New Customer with Promo (Version 3)'
+        template: # This is the core template structure
+          type: object
+          description: |
+            The actual content and structure of the message template.
+            The exact structure of this object varies significantly based on the `message_type_id` (channel) and the specific provider (e.g., WhatsApp, SMS provider).
+            For WhatsApp, this typically includes `name`, `language`, and `components` (HEADER, BODY, FOOTER, BUTTONS).
+          additionalProperties: true # Allows for provider-specific structures
+          example: # WhatsApp HSM Example
+            name: 'welcome_customer_promo_v3' # Matches 'code' or provider's template name
+            language: 'en_US' # Language code (e.g., en, en_US, fr, ar)
+            components:
+              - type: 'HEADER'
+                format: 'TEXT' # Can be TEXT, IMAGE, VIDEO, DOCUMENT
+                text: 'Welcome to Our Brand, {{1}}!' # {{1}} is a variable placeholder
+                # example: { header_text: ["Customer Name"] } # For variable in header
+              - type: 'BODY'
+                text: 'Hello {{1}}, thank you for joining us! As a special welcome gift, use promo code {{2}} for a 10% discount on your first order. This offer is valid until {{3}}. If you have any questions, reply to this message or visit our FAQ at {{4}}.'
+                example: # Example values for body variables
+                  body_text: # Array of arrays for variables
+                    - ['Nadia'] # Value for {{1}}
+                    - ['WELCOME10OFF'] # Value for {{2}}
+                    - ['2024-06-30'] # Value for {{3}}
+                    - ['https://example.com/faq'] # Value for {{4}}
+              - type: 'FOOTER'
+                text: 'Your Trusted Partner Inc.'
+              - type: 'BUTTONS'
+                buttons:
+                  - type: 'QUICK_REPLY' # or URL, CALL
+                    text: 'Shop Now' # Display text for the button
+                    # payload: "action_shop_now" # For quick replies
+                  - type: 'URL'
+                    text: 'Visit Our Website'
+                    url: 'https://www.example.com/welcome?ref={{1}}' # Static or dynamic URL
+                    # example: ["customer_id_123"] # For variable in URL button
+                  - type: 'CALL'
+                    text: 'Call Us'
+                    phone_number: '+1234567890' # International phone number
+        is_template: # Differentiates between a fixed template and a free-form message (if supported)
+          type: integer # Or boolean
+          enum: [0, 1] # 1 for true, 0 for false
+          description: Indicates if this is a standard, pre-approved template (usually `1` for WhatsApp HSMs and similar restricted channels). `0` might represent free-form messages if the channel/provider supports them.
+          example: 1
+        is_used: # Active/Archived status
+          type: integer # Or boolean
+          enum: [0, 1] # 1 for active/usable, 0 for archived/disabled
+          description: Indicates if the template is currently active and usable for sending messages (`1`) or if it's archived/disabled (`0`).
+          example: 1
+        api_provider_instant_id: # Link to a specific provider configuration
+          type: string
+          nullable: true
+          description: Identifier linking this template to a specific API provider instance configuration (e.g., a particular WhatsApp Business Account setup in Digishare), if the template is provider-specific.
+          example: 'aprovinst_whatsapp_primary_001' # aprovinst_ prefix
+        created_at:
+          type: string
+          format: date-time
+          description: Timestamp of when the template was created in the Digishare system (UTC). Read-only.
+          example: '2024-02-07T14:15:25.000000Z'
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          description: Timestamp of when the template was last updated in the Digishare system (UTC). Read-only.
+          example: '2025-04-09T11:18:16.000000Z'
+          readOnly: true
+      required:
+        - id
+        - company_id
+        - title
+        - template # The core template structure is required
+        - is_template
+        - is_used
+        - created_at
+        - updated_at
+
+    # --- Third Party (Contact/Client) Schemas ---
+    Third:
+      title: Third Party Entity Resource
+      description: Represents a Third Party entity within Digishare, which could be an individual contact, a lead, or a client company.
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique server-generated identifier for the Third entity. Read-only.
+          example: 'thd_0wyb4mee98mxng8p' # thd_ prefix
+          readOnly: true
+        main_third_id:
+          type: string
+          nullable: true
+          description: Identifier of a main or primary related Third entity, if this entity is a sub-contact or linked to a primary account (e.g., an employee linked to a company).
+          example: 'thd_parent_company_abc'
+        company_id: # The Digishare company account this Third belongs to
+          type: string
+          description: Identifier of the company account in Digishare that owns this Third entity record.
+          example: 'comp_780ew4kx3kdyjpa5'
+        parent_id: # For hierarchical relationships (e.g., company branches)
+          type: string
+          nullable: true
+          description: Identifier of a parent Third entity, if this entity is part of a hierarchy (e.g., a contact person belonging to a parent company entity).
+          example: 'thd_main_branch_xyz'
+        city_id:
+          type: string
+          nullable: true
+          description: Identifier for the city associated with the entity (links to a predefined list of cities).
+          example: 'city_rabat_morocco'
+        country_id:
+          type: string
+          nullable: true
+          description: Identifier for the country associated with the entity (links to a predefined list of countries, e.g., ISO 3166-1 alpha-2 codes like "MA").
+          example: 'country_ma'
+        state_id:
+          type: string
+          nullable: true
+          description: Identifier for the state/region/province associated with the entity (links to a predefined list).
+          example: 'state_rabat_sale_kenitra'
+        source_id:
+          type: string
+          nullable: true
+          description: Identifier for the source where this entity originated (e.g., 'src_web_signup_form', 'src_manual_import_q1_2024', 'src_api_integration_crm').
+          example: 'src_trade_show_event_mar2024'
+        ext_ref:
+          type: string
+          nullable: true
+          description: An external reference identifier, useful for mapping this entity to a record in an external system (e.g., CRM ID, legacy system ID).
+          example: 'CRM-CONTACTID-54321-XYZ'
+        premium:
+          type: boolean
+          nullable: true # Use boolean, default to false if not provided
+          description: Flag indicating if the entity has a premium status (e.g., VIP client).
+          example: false
+        verified:
+          type: boolean
+          nullable: true # Use boolean, default to false
+          description: Flag indicating if the entity's key contact details (e.g., email, phone number) have been verified.
+          example: true
+        is_company:
+          type: boolean
+          nullable: true # Use boolean, default to false (individual)
+          description: Flag indicating if this entity represents a company/organization (`true`) rather than an individual person (`false`).
+          example: false
+        wa_id: # WhatsApp ID
+          type: string
+          nullable: true
+          description: WhatsApp identifier associated with the entity, typically their phone number in E.164 format.
+          example: '212600112233'
+        email:
+          type: string
+          format: email
+          nullable: true
+          description: Primary email address of the entity.
+          example: 'hassan.alami@example.ma'
+        mobile:
+          type: string
+          nullable: true
+          description: Primary mobile phone number of the entity, preferably in E.164 format.
+          example: '212600112233'
+        phone:
+          type: string
+          nullable: true
+          description: Primary fixed-line phone number of the entity.
+          example: '212537010203' # Example for Morocco
+        first_name:
+          type: string
+          nullable: true
+          description: First name of the individual (if `is_company` is `false`).
+          example: 'Hassan'
+        last_name:
+          type: string
+          nullable: true
+          description: Last name of the individual (if `is_company` is `false`).
+          example: 'Alami'
+        name: # Full name or company name
+          type: string
+          nullable: true
+          description: Full name of the entity. For individuals, this is often auto-generated from `first_name` and `last_name`. For companies, this is the organization's name.
+          example: 'Hassan Alami' # Or "Alami Enterprises SARL" if is_company is true
+        address:
+          type: string
+          nullable: true
+          description: Primary street address line 1.
+          example: '45 Avenue Mohammed V, Appt 10'
+        address_2:
+          type: string
+          nullable: true
+          description: Additional address line (e.g., building name, suite number, secondary street).
+          example: 'Hay Riad, Rabat'
+        postal_code:
+          type: string
+          nullable: true
+          description: Postal or ZIP code.
+          example: '10000'
+        lang:
+          type: string
+          nullable: true
+          description: Preferred language code for communication with this entity (e.g., 'en', 'fr', 'ar', 'es').
+          example: 'ar'
+        gender:
+          type: string
+          enum: [male, female, other, unknown, not_applicable] # Added not_applicable for companies
+          nullable: true
+          description: Gender of the individual. Set to `not_applicable` or `null` if `is_company` is `true`.
+          example: 'male'
+        birthday:
+          type: string
+          format: date
+          nullable: true
+          description: Birth date of the individual.
+          example: '1992-07-10'
+        data:
+          type: object
+          nullable: true
+          additionalProperties: true
+          description: Object containing custom fields or additional unstructured/structured data associated with the entity. Keys are custom field names.
+          example:
+            loyalty_tier: 'Gold'
+            last_purchase_date: '2024-04-15'
+            preferences: { newsletter: true, sms_notifications: false }
+            occupation: 'Software Engineer'
+        created_at:
+          type: string
+          format: date-time
+          description: Timestamp when the entity record was created in the Digishare system (UTC). Read-only.
+          example: '2025-04-09T17:54:54.000000Z'
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          description: Timestamp when the entity record was last updated in the Digishare system (UTC). Read-only.
+          example: '2025-04-10T08:30:00.000000Z'
+          readOnly: true
+      required:
+        - id
+        - company_id
+        - created_at
+        - updated_at
+
+    # --- Webhook Payload Schemas ---
+
+    # Base for Campaign Message Data
+    CampaignMessageDataBase:
+      title: Campaign Message Event Base Data
+      type: object
+      description: Contains common properties shared across all campaign message webhook events.
+      properties:
+        date:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp indicating when the event occurred (UTC).
+          example: '2025-04-09T02:02:11.000000Z'
+        campaign_id:
+          type: string
+          description: The unique identifier of the campaign associated with this message event.
+          example: 'cmp_abc123def456'
+        provider_id:
+          type: string
+          description: The identifier of the messaging provider instance (e.g., a specific WhatsApp Business Account configuration, SMS gateway) used for sending the message.
+          example: 'aprovinst_whatsapp_prod_001'
+        channel_id:
+          type: string
+          description: The communication channel through which the message was sent (e.g., 'whatsapp', 'sms', 'email').
+          example: 'whatsapp'
+        recipient_id:
+          type: string
+          description: The identifier of the message recipient (e.g., phone number in E.164 format for WhatsApp/SMS, email address for email).
+          example: '212601020304'
+        campaign_external_ref:
+          type: string
+          nullable: true
+          description: External reference string that was optionally provided when the campaign was created.
+          example: 'RAMADAN_PROMO_2025_WAVE1'
+        message_external_ref:
+          type: string
+          nullable: true
+          description: External reference string that was optionally provided for this specific message instance within the campaign.
+          example: 'MSG_RECIPIENT_XYZ_ATTEMPT_1'
+        provider_message_id:
+          type: string
+          nullable: true
+          description: The unique message identifier assigned by the external messaging provider (e.g., WhatsApp Message ID, SMS provider's SID).
+          example: 'wamid.HBgNNzA5ODUwOTI0MzE4QkU1QzQ1Rg=='
+        push_log_id:
+          type: string
+          description: Internal Digishare log identifier for this specific message push attempt. Useful for debugging with Digishare support.
+          example: 'plog_ghi789jkl012mno'
+        planned_message_id:
+          type: string
+          description: Internal Digishare identifier for the scheduled/planned message within the campaign's execution plan.
+          example: 'pmsg_mno345pqr678stu'
+        status_code:
+          type: string
+          description: The primary status code that broadly characterizes the event (e.g., 'delivered', 'failed', 'interaction'). More specific statuses might be in `sub_status_code` or implied by the event name.
+      required:
+        - date
+        - campaign_id
+        - provider_id
+        - channel_id
+        - recipient_id
+        - push_log_id
+        - planned_message_id
+        - status_code
+
+    # Campaign Message Status (accepted, delivered, read)
+    CampaignMessageStatusData:
+      title: Campaign Message Status Event Data
+      allOf:
+        - $ref: '#/components/schemas/CampaignMessageDataBase'
+        - type: object
+          properties:
+            status_code:
+              type: string
+              enum: [accepted, delivered, read]
+              description: |
+                The delivery or engagement status of the message:
+                - `accepted`: Message accepted by the provider for delivery.
+                - `delivered`: Message successfully delivered to the recipient's device/inbox.
+                - `read`: Message read by the recipient (only available for channels supporting read receipts, like WhatsApp).
+              example: 'delivered'
+          required:
+            - status_code
+
+    # Campaign Message Interaction (e.g., button click)
+    CampaignMessageInteractionData:
+      title: Campaign Message Interaction Event Data
+      allOf:
+        - $ref: '#/components/schemas/CampaignMessageDataBase'
+        - type: object
+          properties:
+            status_code:
+              type: string
+              enum: [interaction]
+              description: Indicates that the user has interacted with an interactive component of the message (e.g., clicked a button, selected an option from a list).
+              example: 'interaction'
+            interaction_type:
+              type: string
+              enum: [button_click, list_reply, quick_reply]
+              description: The type of interactive element the user triggered.
+              example: 'button_click'
+            payload:
+              type: string
+              description: Identifier or payload associated with the interactive element that the user triggered (e.g., the `id` of a button in a WhatsApp template, the payload of a quick reply).
+              example: 'btn_confirm_appointment_slot_1'
+          required:
+            - status_code
+            - interaction_type
+            - payload
+
+    # Campaign Message Failed
+    CampaignMessageFailedData:
+      title: Campaign Message Failed Event Data
+      allOf:
+        - $ref: '#/components/schemas/CampaignMessageDataBase'
+        - type: object
+          properties:
+            status_code:
+              type: string
+              enum: [failed]
+              description: Indicates that the message failed to be processed or delivered at some stage.
+              example: 'failed'
+            sub_status_code:
+              type: string
+              description: |
+                A more specific reason code for the failure, often provided by Digishare or mapped from the provider's error.
+                Examples:
+                - `failed_provider_rejection`: Rejected by the messaging provider.
+                - `failed_invalid_recipient`: Recipient identifier (phone/email) is invalid or blacklisted.
+                - `failed_rate_limit_exceeded`: Sending rate limit exceeded.
+                - `failed_undelivered_to_handset`: Confirmed undelivered to the recipient's device.
+                - `failed_content_policy_violation`: Message content violated provider's policy.
+                - `failed_insufficient_balance`: Account balance insufficient to send.
+                - `failed_opted_out_recipient`: Recipient has opted out of communications.
+                - `failed_network_error`: Temporary network issue.
+                - `failed_unknown_provider_error`: Unspecified error from the provider.
+                - `failed_internal_system_error`: Error within the Digishare system.
+                Refer to [Error Codes Documentation](https://docs.digishare.ma/errors/campaign-messages) for a comprehensive list.
+              example: 'failed_undelivered_to_handset'
+            error_message:
+              type: string
+              nullable: true
+              description: A human-readable error message detailing the cause of the failure, if available. This may come from Digishare or directly from the messaging provider.
+              example: 'Message Undeliverable: The recipient phone number is not currently active or reachable on WhatsApp. Provider error code: 131026.'
+            provider_error_code:
+              type: string
+              nullable: true
+              description: The original error code returned by the external messaging provider, if applicable.
+              example: '131026'
+          required:
+            - status_code
+            - sub_status_code
+
+    # --- Third Party Event Data Schemas ---
+    ThirdCreatedEventData:
+      title: Third Party Created Event - Data Section
+      type: object
+      description: Specific data payload for the `third.created` webhook event.
+      properties:
+        id:
+          type: string
+          description: The unique identifier of the newly created Third entity. This will match the `id` field within the nested `data` object.
+          example: 'thd_0wyb4mee98mxng8p'
+        data:
+          $ref: '#/components/schemas/Third'
+          description: An object containing the complete details of the newly created Third entity.
+        wasRecentlyCreated:
+          type: boolean
+          description: A flag indicating that this event represents a new creation. This will typically always be `true` for `third.created` events.
+          example: true
+      required:
+        - id
+        - data
+        - wasRecentlyCreated
+
+    ThirdUpdatedEventData:
+      title: Third Party Updated Event - Data Section
+      type: object
+      description: Specific data payload for the `third.updated` webhook event.
+      properties:
+        id:
+          type: string
+          description: The unique identifier of the Third entity that was updated.
+          example: 'thd_0wyb4mee98mxng8p'
+        data:
+          $ref: '#/components/schemas/Third'
+          description: An object containing the complete details of the Third entity *after* the update has been applied.
+        wasRecentlyCreated:
+          type: boolean
+          description: A flag indicating if the entity was just created in the same operation that triggered this update (usually `false` for genuine update events).
+          example: false
+        changes:
+          type: object
+          description: |
+            An object containing only the attributes that were changed in this update operation, along with their **new values**.
+            If a nested object (like custom `data` fields) is partially changed, this might show only the changed sub-fields or the entire new state of that nested object, depending on implementation.
+            Timestamps in the `changes` object might reflect the update time and could occasionally be in a slightly different string format than the primary `updated_at` field in the main `data` object.
+            **Always refer to the main `data` object for the canonical, fully updated entity structure and precise field formats.**
+          additionalProperties: true
+          example:
+            name: 'Hassan Alami (Active Account)'
+            wa_id: '212600112233'
+            verified: true
+            premium: true
+            data: { 'loyalty_tier': 'Silver', 'last_interaction': '2025-04-10T08:00:00Z' }
+            updated_at: '2025-04-10 08:30:00'
+      required:
+        - id
+        - data
+        - wasRecentlyCreated
+        - changes
+
+    ThirdDeletedEventData:
+      title: Third Party Deleted Event - Data Section
+      type: object
+      description: Specific data payload for the `third.deleted` webhook event.
+      properties:
+        id:
+          type: string
+          description: The unique identifier of the Third entity that was deleted.
+          example: 'thd_0wyb4mee98mxng8p'
+      required:
+        - id
+
+    ThirdTagsChangedEventData:
+      title: Third Party Tags Changed Event - Data Section
+      type: object
+      description: Specific data payload for the `third.tags-changed` webhook event.
+      properties:
+        model_type:
+          type: string
+          enum: [third]
+          description: The type of the model whose tags were changed. For Third Party entities, this will be "third".
+          example: 'third'
+        model_id:
+          type: string
+          description: The unique identifier of the specific model instance (i.e., the Third entity ID) whose tags were modified.
+          example: 'thd_80ew4kx3bxkdyjpa'
+        attached_tags:
+          type: array
+          items:
+            type: string
+          description: A list of tag names or codes that were newly attached (added) to the model in this operation.
+          example: ['loyal_customer_segment_A', 'interested_in_product_X']
+        detached_tags:
+          type: array
+          items:
+            type: string
+          description: A list of tag names or codes that were detached (removed) from the model in this operation.
+          example: ['hot_lead_q1', 'promo_recipient_march2025']
+      required:
+        - model_type
+        - model_id
+        - attached_tags
+        - detached_tags
+
+    # --- Live Chat Event Data Schemas ---
+    LiveChatPlatformLink:
+      title: Live Chat Platform Link
+      type: object
+      description: Describes the platform-specific identification for a user in a live chat.
+      properties:
+        id:
+          type: string
+          description: Internal Digishare identifier for this platform link record.
+          example: 'plnk_lmn789opq345rst'
+        channel:
+          type: string
+          description: The communication channel where the chat occurs (e.g., 'whatsapp', 'webchat', 'facebook_messenger').
+          example: 'whatsapp'
+        platform_id:
+          type: string
+          description: The user's unique identifier on the external chat platform (e.g., phone number for WhatsApp, session ID for webchat, Page-Scoped User ID for Messenger).
+          example: '212612345678'
+      required:
+        - id
+        - channel
+        - platform_id
+
+    LiveChatThirdInfo:
+      title: Live Chat - Third Party Information
+      type: object
+      description: Condensed information about the Third Party (customer/contact) involved in the live chat.
+      properties:
+        id:
+          type: string
+          description: The unique Digishare ID of the Third entity.
+          example: 'thd_pqr456stu012vwx'
+        name:
+          type: string
+          nullable: true
+          description: The name of the Third entity as known in Digishare.
+          example: 'Fatima Zahra El Idrissi'
+        platform_link:
+          $ref: '#/components/schemas/LiveChatPlatformLink'
+          description: Platform-specific identification details for this Third Party in the context of the chat.
+      required:
+        - id
+        - platform_link
+
+    LiveChatNewConversationDataNested:
+      title: Live Chat New Conversation - Nested Data
+      type: object
+      description: Detailed information within the `data` field of a `live_chat.new_conversation` event.
+      properties:
+        created_at:
+          type: string
+          format: date-time
+          description: Timestamp when the conversation was initiated (UTC).
+          example: '2025-04-29T14:40:47.000000Z'
+        third:
+          $ref: '#/components/schemas/LiveChatThirdInfo'
+          description: Details of the Third Party (customer) who initiated or is part of the new conversation.
+      required:
+        - created_at
+        - third
+
+    LiveChatNewConversationData:
+      title: Live Chat New Conversation Event - Data Section
+      type: object
+      description: Specific data payload for the `live_chat.new_conversation` webhook event.
+      properties:
+        id:
+          type: string
+          description: The unique identifier for the newly created live chat conversation.
+          example: 'conv_abc123xyz789qwe'
+        data:
+          $ref: '#/components/schemas/LiveChatNewConversationDataNested'
+          description: Contains the core details of the new conversation.
+      required:
+        - id
+        - data
+
+    LiveChatMessageSender:
+      title: Live Chat Message Sender Information
+      type: object
+      description: Details about the sender of a live chat message.
+      properties:
+        id:
+          type: string
+          description: Internal identifier related to the sender entity (could be a user ID, third ID, or a system sender ID).
+          example: 'sndr_agent_ahmed_cherkaoui'
+        model_type:
+          type: string
+          enum: [third, user, system]
+          description: The type of Digishare entity that sent the message.
+          example: 'user'
+        model_id:
+          type: string
+          description: The unique ID of the sending entity (e.g., Third ID if `model_type` is 'third', User ID if `model_type` is 'user').
+          example: 'usr_ahmed_cherkaoui_agent007'
+        name:
+          type: string
+          nullable: true
+          description: The display name of the sender.
+          example: 'Ahmed Cherkaoui (Support)'
+      required:
+        - id
+        - model_type
+        - model_id
+
+    LiveChatCampaignMessageContent:
+      title: Live Chat Campaign Message - Content Block
+      type: object
+      description: Defines the rich content structure of a campaign message (e.g., interactive elements like buttons, lists, flows) as sent via live chat. This structure is highly dependent on the channel (e.g., WhatsApp).
+      properties:
+        body:
+          type: object
+          properties:
+            text:
+              type: string
+              example: 'Thank you for your visit! Please share your feedback with us.'
+          example: { text: 'Thank you for your visit! Please share your feedback with us.' }
+        type:
+          type: string
+          description: Specifies the type of the interactive message component (e.g., 'text', 'button', 'list', 'product', 'flow'). This dictates the structure of `action`.
+          example: 'button'
+        action:
+          type: object
+          additionalProperties: true
+          description: Defines the interactive elements like buttons, list sections, or flow parameters. The structure varies greatly based on the `type`.
+          example:
+            buttons:
+              - type: 'reply'
+                reply: { id: 'feedback_very_satisfied', title: 'Very Satisfied 👍' }
+              - type: 'reply'
+                reply: { id: 'feedback_satisfied', title: 'Satisfied 😊' }
+              - type: 'reply'
+                reply: { id: 'feedback_not_satisfied', title: 'Not Satisfied 👍' }
+        header:
+          type: object
+          nullable: true
+          additionalProperties: true
+          description: Optional header content for the message. Structure depends on the header type (text, image, etc.).
+          example: { type: 'text', text: 'Your Feedback Matters!' }
+        footer:
+          type: object
+          nullable: true
+          properties:
+            text:
+              type: string
+              example: 'Reply STOP to unsubscribe.'
+          example: { text: 'Reply STOP to unsubscribe.' }
+      required:
+        - body
+        - type
+
+    LiveChatCampaignMessageMsg:
+      title: Live Chat Campaign Message - Message Details
+      type: object
+      description: Core details of the campaign message being sent via live chat, often mirroring the structure sent to the messaging provider.
+      properties:
+        to:
+          type: string
+          description: Recipient identifier (e.g., phone number for WhatsApp, user ID for other platforms).
+          example: '212612345678'
+        subject:
+          type: string
+          nullable: true
+          description: An internal subject or title for the message, not usually displayed to the recipient but useful for tracking.
+          example: 'Post-Interaction Satisfaction Survey via Chat'
+        content:
+          $ref: '#/components/schemas/LiveChatCampaignMessageContent'
+          description: The actual rich content structure of the message, including interactive elements.
+        content_type:
+          type: string
+          description: The type of content being sent, often specific to the provider (e.g., 'text', 'interactive', 'template' for WhatsApp).
+          example: 'interactive'
+      required:
+        - to
+        - content
+        - content_type
+
+    LiveChatCampaignMessageBody:
+      title: Live Chat Message - Campaign Body
+      type: object
+      description: Data specific to a 'campaign' type message within a live chat, detailing the campaign context and the message sent.
+      properties:
+        api_provider_instance_id:
+          type: string
+          description: ID of the API provider instance (e.g., specific WABA) used for this message.
+          example: 'aprovinst_whatsapp_business_main'
+        campaign_id:
+          type: string
+          nullable: true
+          description: ID of the associated Digishare campaign, if this message is part of one.
+          example: 'camp_customer_survey_q2_2025'
+        planned_message_id:
+          type: string
+          nullable: true
+          description: ID of the scheduled message from the campaign, if applicable.
+          example: 'pmsg_survey_wave1_user123'
+        channel:
+          type: string
+          description: Communication channel used for this campaign message (e.g., 'whatsapp').
+          example: 'whatsapp'
+        platform_link_id:
+          type: string
+          description: Platform link ID of the recipient in this chat context.
+          example: 'plnk_lmn789opq345rst'
+        message_template_id:
+          type: string
+          description: ID of the Digishare message template used for this message.
+          example: 'mtpl_whatsapp_survey_interactive_v1'
+        msg:
+          $ref: '#/components/schemas/LiveChatCampaignMessageMsg'
+          description: The core message details, including recipient, content, and content type, as prepared for the provider.
+        msg_params:
+          type: object
+          nullable: true
+          additionalProperties: true
+          description: Additional parameters and variables used for personalizing the message template or providing context.
+          example:
+            contact: { wa_id: '212612345678', third_id: 'thd_pqr456stu012', name: 'Fatima' }
+            message_data:
+              {
+                'custom_var_product_name': 'Deluxe Widget',
+                'custom_var_last_order_date': '2025-04-20',
+              }
+      required:
+        - api_provider_instance_id
+        - channel
+        - platform_link_id
+        - message_template_id
+        - msg
+
+    LiveChatMessageBaseData:
+      title: Live Chat Message - Base Data
+      type: object
+      description: Common properties shared by all types of messages within a live chat conversation.
+      properties:
+        conversation_id:
+          type: string
+          description: The unique identifier of the live chat conversation this message belongs to.
+          example: 'conv_abc123xyz789qwe'
+        system:
+          type: boolean
+          description: '`true` if the message is generated by the system (e.g., automated notifications, bot messages, campaign messages delivered via chat). `false` if sent by a human user (customer or agent).'
+          example: false
+        type:
+          type: string
+          description: The type of the message content. This field acts as a discriminator to determine the structure of the `body` field.
+          example: 'text'
+        send_to_third:
+          type: boolean
+          description: Indicates the direction of the message relative to the Third Party (customer). `true` (or `1`) if the message was sent from an agent or the system *to* the customer. `false` (or `0`) if the message was sent *from* the customer to an agent or the system.
+          example: true
+        platform_link_id:
+          type: string
+          nullable: true
+          description: The platform link ID associated with the sender (if customer) or recipient (if agent/system sending to customer).
+          example: 'plnk_lmn789opq345rst'
+        sent_using:
+          type: string
+          nullable: true
+          description: The communication channel used to send/receive this message (e.g., 'whatsapp', 'webchat').
+          example: 'whatsapp'
+        created_at:
+          type: string
+          format: date-time
+          description: Timestamp when the message was created or received by the Digishare system (UTC).
+          example: '2025-04-29T14:40:58.000000Z'
+        sender:
+          $ref: '#/components/schemas/LiveChatMessageSender'
+          nullable: true
+          description: Details of the sender of the message. Present for non-system messages and some system messages.
+      required:
+        - conversation_id
+        - system
+        - type
+        - send_to_third
+        - created_at
+
+    LiveChatTextMessageData:
+      title: Live Chat Message - Text Content Data
+      allOf:
+        - $ref: '#/components/schemas/LiveChatMessageBaseData'
+        - type: object
+          properties:
+            type:
+              type: string
+              enum: [text]
+            body:
+              type: string
+              description: The plain text content of the message.
+              example: 'Hello, how can I help you today with your account?'
+          required: [type, body]
+
+    LiveChatCampaignMessageData:
+      title: Live Chat Message - Campaign Content Data
+      allOf:
+        - $ref: '#/components/schemas/LiveChatMessageBaseData'
+        - type: object
+          properties:
+            type:
+              type: string
+              enum: [campaign]
+            body:
+              $ref: '#/components/schemas/LiveChatCampaignMessageBody'
+              description: Structured data representing the campaign message content and its context as delivered via chat.
+          required: [type, body]
+
+    LiveChatMessageDataNested:
+      title: Live Chat Message - Content (Polymorphic)
+      description: |
+        Polymorphic schema for the nested `data` object within a `live_chat.new_message` event.
+        The structure of this object, particularly its `body` field, depends on the value of its `type` field (which acts as a discriminator):
+        - If `type: "text"`, the structure follows `LiveChatTextMessageData`.
+        - If `type: "campaign"`, the structure follows `LiveChatCampaignMessageData`.
+        - (Add other types like `image`, `file` here if they have distinct structures)
+      oneOf:
+        - $ref: '#/components/schemas/LiveChatTextMessageData'
+        - $ref: '#/components/schemas/LiveChatCampaignMessageData'
+      discriminator:
+        propertyName: type
+        mapping:
+          text: '#/components/schemas/LiveChatTextMessageData'
+          campaign: '#/components/schemas/LiveChatCampaignMessageData'
+
+    LiveChatMessageData:
+      title: Live Chat New Message Event - Data Section
+      type: object
+      description: Specific data payload for the `live_chat.new_message` webhook event.
+      properties:
+        id:
+          type: string
+          description: The unique identifier for this specific message instance.
+          example: 'msg_agent_reply_456uvw789'
+        data:
+          $ref: '#/components/schemas/LiveChatMessageDataNested'
+          description: Contains the core details of the new live chat message.
+      required:
+        - id
+        - data
+
+    LiveChatConversationArchivedData:
+      title: Live Chat Conversation Archived Event - Data Section
+      type: object
+      description: Specific data payload for the `live_chat.conversation_archived` webhook event.
+      properties:
+        conversation_id:
+          type: string
+          description: The ID of the live chat conversation that was archived.
+          example: 'conv_abc123xyz789qwe'
+        archived_at:
+          type: string
+          format: date-time
+          description: Timestamp when the conversation was marked as archived (UTC).
+          example: '2025-05-01T10:30:00.000000Z'
+        archived_by:
+          type: object
+          nullable: true
+          properties:
+            type:
+              type: string
+              enum: [user, system_rule]
+              example: 'system_rule'
+            id:
+              type: string
+              nullable: true
+              example: 'rule_inactivity_archive_24h'
+          description: Information about who or what process archived the conversation.
+      required:
+        - conversation_id
+        - archived_at
+
+    # --- Ticket Event Data Schemas ---
+    TicketCreatedEventData:
+      title: Ticket Created Event - Data Section
+      type: object
+      description: Specific data payload for the `ticket.created` webhook event.
+      properties:
+        id:
+          type: string
+          description: The unique identifier of the newly created Ticket. This will match the `id` field within the nested `data` object.
+          example: 'tkt_n65opmdwby6l84r7'
+        data:
+          $ref: '#/components/schemas/Ticket'
+          description: An object containing the complete details of the newly created Ticket.
+        wasRecentlyCreated:
+          type: boolean
+          description: A flag indicating that this event represents a new creation. This will typically always be `true` for `ticket.created` events.
+          example: true
+      required:
+        - id
+        - data
+        - wasRecentlyCreated
+
+    TicketUpdatedEventData:
+      title: Ticket Updated Event - Data Section
+      type: object
+      description: Specific data payload for the `ticket.updated` webhook event.
+      properties:
+        id:
+          type: string
+          description: The unique identifier of the Ticket that was updated.
+          example: 'tkt_n65opmdwby6l84r7'
+        data:
+          $ref: '#/components/schemas/Ticket'
+          description: An object containing the complete details of the Ticket *after* the update has been applied.
+        wasRecentlyCreated:
+          type: boolean
+          description: A flag indicating if the entity was just created in the same operation that triggered this update (usually `false` for genuine update events).
+          example: false
+        changes:
+          type: object
+          additionalProperties: true
+          description: |
+            An object containing only the attributes that were changed in this update operation, along with their **new values**.
+            If a nested object (like `information` or custom `data` fields) is partially changed, this might show only the changed sub-fields or the entire new state of that nested object.
+            Timestamps in the `changes` object might reflect the update time and could occasionally be in a slightly different string format than the primary `updated_at` field in the main `data` object.
+            **Always refer to the main `data` object for the canonical, fully updated ticket structure and precise field formats.**
+          example:
+            subject: 'Demande RDV commercial 22 - Follow-up Scheduled'
+            ticket_status_id: 'tstat_pending_agent_followup'
+            handler_id: 'usr_agent_amina_sales'
+            note: 'Follow-up call scheduled for tomorrow at 10 AM.'
+            information: { 'follow_up_datetime': '2025-05-07T10:00:00Z', 'meeting_link_sent': true }
+            updated_at: '2025-05-06 15:50:13'
+      required:
+        - id
+        - data
+        - wasRecentlyCreated
+        - changes
+
+    TicketDeletedEventData:
+      title: Ticket Deleted Event - Data Section
+      type: object
+      description: Specific data payload for the `ticket.deleted` webhook event.
+      properties:
+        id:
+          type: string
+          description: The unique identifier of the Ticket that was deleted.
+          example: 'tkt_n65opmdwby6l84r7'
+      required:
+        - id
+
+    # --- Top-Level Webhook Event Schemas (using oneOf and discriminator) ---
+    CampaignWebhookPayload:
+      title: Campaign Message Webhook Payload (Polymorphic)
+      description: |
+        Represents the complete structure of the JSON payload sent to your configured webhook URL for various campaign message events.
+        Use the `event` property (e.g., "campaign_message.delivered", "campaign_message.failed") to determine the specific type of event and correctly interpret the structure of the `data` object.
+      oneOf:
+        - $ref: '#/components/schemas/CampaignMessageStatusEvent'
+        - $ref: '#/components/schemas/CampaignMessageInteractionEvent'
+        - $ref: '#/components/schemas/CampaignMessageFailedEvent'
+      discriminator:
+        propertyName: event
+        mapping:
+          campaign_message.accepted: '#/components/schemas/CampaignMessageStatusEvent'
+          campaign_message.delivered: '#/components/schemas/CampaignMessageStatusEvent'
+          campaign_message.read: '#/components/schemas/CampaignMessageStatusEvent'
+          campaign_message.interaction: '#/components/schemas/CampaignMessageInteractionEvent'
+          campaign_message.failed: '#/components/schemas/CampaignMessageFailedEvent'
+
+    CampaignMessageStatusEvent:
+      title: Campaign Message Status Event (Webhook Payload)
+      type: object
+      description: Full payload for webhook events indicating a change in message status (accepted, delivered, read).
+      properties:
+        event:
+          type: string
+          enum: ['campaign_message.accepted', 'campaign_message.delivered', 'campaign_message.read']
+          description: The specific event type string.
+        data:
+          $ref: '#/components/schemas/CampaignMessageStatusData'
+          description: Contains the detailed data for this status event.
+      required: [event, data]
+
+    CampaignMessageInteractionEvent:
+      title: Campaign Message Interaction Event (Webhook Payload)
+      type: object
+      description: Full payload for webhook events triggered when a user interacts with a campaign message component.
+      properties:
+        event:
+          type: string
+          enum: ['campaign_message.interaction']
+          description: The specific event type string.
+        data:
+          $ref: '#/components/schemas/CampaignMessageInteractionData'
+          description: Contains the detailed data for this interaction event.
+      required: [event, data]
+
+    CampaignMessageFailedEvent:
+      title: Campaign Message Failed Event (Webhook Payload)
+      type: object
+      description: Full payload for webhook events triggered when a campaign message fails to send or deliver.
+      properties:
+        event:
+          type: string
+          enum: ['campaign_message.failed']
+          description: The specific event type string.
+        data:
+          $ref: '#/components/schemas/CampaignMessageFailedData'
+          description: Contains the detailed data for this failure event.
+      required: [event, data]
+
+    ThirdCreatedEvent:
+      title: Third Party Created Event (Webhook Payload)
+      type: object
+      description: Full payload for webhook events triggered when a new Third entity is created.
+      properties:
+        event:
+          type: string
+          enum: ['third.created']
+          description: "The specific event type string: 'third.created'."
+        data:
+          $ref: '#/components/schemas/ThirdCreatedEventData'
+          description: Contains the detailed data for the created Third entity.
+      required: [event, data]
+
+    ThirdUpdatedEvent:
+      title: Third Party Updated Event (Webhook Payload)
+      type: object
+      description: Full payload for webhook events triggered when an existing Third entity is updated.
+      properties:
+        event:
+          type: string
+          enum: ['third.updated']
+          description: 'The specific event type string: "third.updated".'
+        data:
+          $ref: '#/components/schemas/ThirdUpdatedEventData'
+          description: Contains the detailed data for the updated Third entity and the changes made.
+      required: [event, data]
+
+    ThirdDeletedEvent:
+      title: Third Party Deleted Event (Webhook Payload)
+      type: object
+      description: Full payload for webhook events triggered when a Third entity is deleted.
+      properties:
+        event:
+          type: string
+          enum: ['third.deleted']
+          description: 'The specific event type string: "third.deleted".'
+        data:
+          $ref: '#/components/schemas/ThirdDeletedEventData'
+          description: Contains the ID of the deleted Third entity.
+      required: [event, data]
+
+    ThirdTagsChangedEvent:
+      title: Third Party Tags Changed Event (Webhook Payload)
+      type: object
+      description: Full payload for webhook events triggered when tags associated with a Third entity are changed.
+      properties:
+        event:
+          type: string
+          enum: ['third.tags-changed']
+          description: 'The specific event type string: "third.tags-changed".'
+        data:
+          $ref: '#/components/schemas/ThirdTagsChangedEventData'
+          description: Contains details about the tag modifications.
+      required: [event, data]
+
+    LiveChatNewConversationEvent:
+      title: Live Chat New Conversation Event (Webhook Payload)
+      type: object
+      description: Full payload for webhook events triggered when a new live chat conversation starts.
+      properties:
+        event:
+          type: string
+          enum: ['live_chat.new_conversation']
+          description: 'The specific event type string: "live_chat.new_conversation".'
+        data:
+          $ref: '#/components/schemas/LiveChatNewConversationData'
+          description: Contains details of the new live chat conversation.
+      required: [event, data]
+
+    LiveChatNewMessageEvent:
+      title: Live Chat New Message Event (Webhook Payload)
+      type: object
+      description: Full payload for webhook events triggered when a new message is added to a live chat conversation. The `data.data.body` structure is polymorphic based on `data.data.type`.
+      properties:
+        event:
+          type: string
+          enum: ['live_chat.new_message']
+          description: 'The specific event type string: "live_chat.new_message".'
+        data:
+          $ref: '#/components/schemas/LiveChatMessageData'
+          description: Contains details of the new live chat message.
+      required: [event, data]
+
+    LiveChatConversationArchivedEvent:
+      title: Live Chat Conversation Archived Event (Webhook Payload)
+      type: object
+      description: Full payload for webhook events triggered when a live chat conversation is archived.
+      properties:
+        event:
+          type: string
+          enum: ['live_chat.conversation_archived']
+          description: 'The specific event type string: "live_chat.conversation_archived".'
+        data:
+          $ref: '#/components/schemas/LiveChatConversationArchivedData'
+          description: Contains details of the archived live chat conversation.
+      required: [event, data]
+
+    TicketCreatedEvent:
+      title: Ticket Created Event (Webhook Payload)
+      type: object
+      description: Full payload for webhook events triggered when a new support ticket is created.
+      properties:
+        event:
+          type: string
+          enum: ['ticket.created']
+          description: 'The specific event type string: "ticket.created".'
+        data:
+          $ref: '#/components/schemas/TicketCreatedEventData'
+          description: Contains the detailed data for the created ticket.
+      required: [event, data]
+
+    TicketUpdatedEvent:
+      title: Ticket Updated Event (Webhook Payload)
+      type: object
+      description: Full payload for webhook events triggered when an existing support ticket is updated.
+      properties:
+        event:
+          type: string
+          enum: ['ticket.updated']
+          description: 'The specific event type string: "ticket.updated".'
+        data:
+          $ref: '#/components/schemas/TicketUpdatedEventData'
+          description: Contains the detailed data for the updated ticket and the changes made.
+      required: [event, data]
+
+    TicketDeletedEvent:
+      title: Ticket Deleted Event (Webhook Payload)
+      type: object
+      description: Full payload for webhook events triggered when a support ticket is deleted.
+      properties:
+        event:
+          type: string
+          enum: ['ticket.deleted']
+          description: 'The specific event type string: "ticket.deleted".'
+        data:
+          $ref: '#/components/schemas/TicketDeletedEventData'
+          description: Contains the ID of the deleted ticket.
+      required: [event, data]
