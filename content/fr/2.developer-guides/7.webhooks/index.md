@@ -12,9 +12,17 @@ Pour configurer les webhooks, vous devez créer un fournisseur **Custom Webhooks
 
 ::steps
 
-### Naviguer vers les Fournisseurs
+### Naviguer vers API Provider
 
-Allez dans **Paramètres > Fournisseurs** (Settings > Providers) dans votre tableau de bord Digishare et cliquez sur le bouton **Créer un Fournisseur** (Create Provider).
+Accédez à **Paramètres Avancés > API Provider** dans le menu latéral.
+
+::tip
+Vous pouvez également trouver cela instantanément en recherchant "**provider**" dans la barre de recherche.
+::
+
+### Créer un Fournisseur
+
+Cliquez sur l'icône bleue **+** (plus) située en haut à gauche de la liste des fournisseurs pour ajouter votre premier fournisseur de webhooks.
 
 ### Sélectionner le Type de Fournisseur
 
@@ -63,6 +71,44 @@ Lors de la configuration d'un nouveau webhook, vous pouvez personnaliser la faç
 ::note
 Vous pouvez configurer plusieurs webhooks différents pour le même événement exact. Par exemple, vous pouvez envoyer les événements `ticket.created` à la fois à votre CRM et à un service de notification Slack spécialisé simultanément.
 ::
+
+## 5. Meilleures Pratiques
+
+Pour garantir une intégration robuste, suivez ces recommandations lors de la manipulation des webhooks Digishare :
+
+*   **Accusé de Réception Immédiat** : Votre serveur doit répondre avec un statut `200 OK` immédiatement après avoir reçu la charge utile. Effectuez tout traitement lourd ou appel API externe de manière asynchrone en arrière-plan.
+*   **Gérer les Réessais** : Si votre serveur renvoie un statut non-2xx, Digishare tentera de relivrer le webhook. Assurez-vous que votre point de terminaison gère ces relivraisons avec élégance.
+*   **Idempotence** : Comme les webhooks peuvent être livrés plus d'une fois (en raison de problèmes réseau, par exemple), vérifiez toujours l'identifiant `event_id` ou un identifiant unique similaire pour éviter de traiter deux fois le même événement.
+*   **Ordre des Événements** : Bien que nous nous efforcions d'assurer une livraison séquentielle, la variabilité du réseau peut faire arriver les événements dans le désordre. Utilisez les horodatages (`timestamp`) dans la charge utile pour déterminer l'ordre logique correct.
+
+## 6. Sécurité et Vérification
+
+Nous vous recommandons vivement de sécuriser vos points de terminaison pour garantir que les requêtes proviennent bien de Digishare.
+
+### Authentification des Requêtes
+Comme détaillé dans la section **Configuration Avancée**, vous pouvez utiliser :
+*   **Basic Auth** : Vérification simple par nom d'utilisateur et mot de passe.
+*   **Bearer Token** : Un jeton secret statique partagé entre Digishare et votre serveur.
+*   **En-têtes Personnalisés** : Ajoutez un en-tête (ex: `X-Digishare-Secret`) et vérifiez-le de votre côté.
+
+### Liste Blanche d'IP
+Si votre infrastructure le permet, vous pouvez mettre nos adresses IP sur liste blanche. Veuillez contacter le support pour obtenir la liste actuelle des plages IP sortantes de Digishare.
+
+### Vérification de Charge Utile (Recommandé)
+Vérifiez toujours que la structure de la charge utile correspond à ce que vous attendez. Une charge utile typique comprend :
+
+```json
+{
+  "event": "campaign_message.delivered",
+  "timestamp": "2026-03-23T15:40:00Z",
+  "event_id": "evt_123456789",
+  "data": {
+    "message_id": "msg_987654321",
+    "recipient_id": "212600000000",
+    "status": "delivered"
+  }
+}
+```
 
 ### Configuration Avancée
 

@@ -12,6 +12,9 @@ Configurez des webhooks et gérez les conversations clients en temps réel.
 ::card{title="Messages Sortants" icon="i-lucide-send" to="/fr/developer-guides/livechat/outgoing-messages"}
 Référence détaillée pour l'envoi de messages texte, de localisation et interactifs.
 ::
+::card{title="Messages Entrants" icon="i-lucide-download" to="/fr/developer-guides/livechat/incoming-messages"}
+Comprenez comment recevoir et analyser les messages des clients (Texte, Localisation, Boutons).
+::
 ::card{title="Conversations" icon="i-lucide-message-circle" to="/fr/developer-guides/livechat/conversations"}
 Gérez et interagissez avec les conversations via l'API, vérifiez la disponibilité et envoyez des messages.
 ::

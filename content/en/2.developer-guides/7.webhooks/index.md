@@ -12,9 +12,17 @@ To set up webhooks, you need to create a **Custom Webhooks** provider.
 
 ::steps
 
-### Navigate to Providers
+### Navigate to API Provider
 
-Go to **Settings > Providers** in your Digishare dashboard and click the **Create Provider** button.
+Go to **Advanced Settings > API Provider** in the sidebar.
+
+::tip
+You can also find this instantly by searching for "**provider**" in the sidebar search bar.
+::
+
+### Create a New Provider
+
+Click the blue **+** (plus) icon located at the top-left of the Providers list to add your first webhook provider.
 
 ### Select Provider Type
 
@@ -63,6 +71,44 @@ When configuring a new webhook, you can customize how Digishare delivers the pay
 ::note
 You can configure multiple different webhooks for the exact same event. For example, you can send `ticket.created` events to both your CRM and a specialized Slack notification service simultaneously.
 ::
+
+## 5. Best Practices
+
+To ensure a robust integration, follow these best practices when handling webhooks from Digishare:
+
+*   **Acknowledge Immediately**: Your server should respond with a `200 OK` status immediately upon receiving the payload. Perform any heavy processing or external API calls asynchronously in the background.
+*   **Handle Retries**: If your server returns a non-2xx status, Digishare will attempt to redeliver the webhook. Ensure your endpoint handles these retries gracefully.
+*   **Idempotency**: Since webhooks can be delivered more than once (e.g., due to network issues), always check the `event_id` or similar unique identifier to avoid processing the same event twice.
+*   **Order of Events**: While we strive for sequential delivery, network variability means events might arrive out of order. Use timestamps in the payload to determine the correct logical order.
+
+## 6. Security & Verification
+
+We strongly recommend securing your webhook endpoints to ensure requests originate from Digishare.
+
+### Authenticating Requests
+As detailed in the **Advanced Configuration** section, you can use:
+*   **Basic Auth**: Simple username/password verification.
+*   **Bearer Token**: A static secret token shared between Digishare and your server.
+*   **Custom Headers**: Add a custom header (e.g., `X-Digishare-Secret`) and verify it on your side.
+
+### IP Whitelisting
+If your infrastructure allows, you can whitelist our IP addresses. Please contact support to obtain the current list of Digishare's outgoing webhook IP ranges.
+
+### Payload Verification (Recommended)
+Always verify that the payload structure matches what you expect. A typical webhook payload includes:
+
+```json
+{
+  "event": "campaign_message.delivered",
+  "timestamp": "2026-03-23T15:40:00Z",
+  "event_id": "evt_123456789",
+  "data": {
+    "message_id": "msg_987654321",
+    "recipient_id": "212600000000",
+    "status": "delivered"
+  }
+}
+```
 
 ### Advanced Configuration
 
