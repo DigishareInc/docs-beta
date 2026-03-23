@@ -163,6 +163,16 @@ const validateBody = () => {
   }
 };
 
+const highlightedBody = computed(() => {
+  if (!editableBody.value) return "";
+  try {
+    if (!hljsInstance.value || !isBodyValid.value) return editableBody.value;
+    return hljsInstance.value.highlight(editableBody.value, { language: "json" }).value;
+  } catch {
+    return editableBody.value;
+  }
+});
+
 watch(editableBody, validateBody);
 
 // Initialize main view mode if sample exists
@@ -794,15 +804,52 @@ const formatBytes = (bytes: number) => {
                    </div>
                 </div>
 
-                <!-- Body -->
-                <div v-if="activeRequestTab === 'body'" class="space-y-3">
-                   <div class="flex justify-between items-center">
-                      <h4 class="text-[10px] font-bold uppercase tracking-wider text-gray-500">JSON Body</h4>
-                      <button @click="formatBody" :disabled="!isBodyValid" class="text-[10px] font-bold text-indigo-500 hover:text-indigo-400 disabled:opacity-30 uppercase tracking-wider">Format</button>
-                   </div>
-                   <textarea v-model="editableBody" rows="15" class="w-full p-4 bg-gray-50 dark:bg-black/30 rounded-lg text-xs font-mono text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 resize-none" :class="{ 'border-red-500/50 bg-red-50 dark:bg-red-500/5': !isBodyValid }" />
-                   <p v-if="!isBodyValid" class="text-[10px] text-red-500 font-semibold">{{ bodyError }}</p>
-                </div>
+                 <!-- Body -->
+                 <div v-if="activeRequestTab === 'body'" class="space-y-4">
+                    <div class="flex justify-between items-center px-1">
+                       <div class="flex items-center gap-2">
+                          <h4 class="text-[10px] font-bold uppercase tracking-wider text-gray-500">JSON Body</h4>
+                          <UBadge v-if="!isBodyValid" color="error" variant="soft" size="xs" class="animate-pulse">Invalid JSON</UBadge>
+                       </div>
+                       <div class="flex items-center gap-4">
+                          <button @click="formatBody" :disabled="!isBodyValid" class="text-[10px] font-bold text-indigo-500 hover:text-indigo-400 disabled:opacity-30 uppercase tracking-wider transition-colors flex items-center gap-1">
+                             <UIcon name="i-lucide-wand-2" class="w-3 h-3" />
+                             Format
+                          </button>
+                       </div>
+                    </div>
+                    
+                    <div class="relative group/editor rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-black/40 overflow-hidden transition-all focus-within:ring-2 focus-within:ring-indigo-500/20 focus-within:border-indigo-500/30">
+                       <div class="flex w-full min-h-[350px]">
+                          <!-- Line Numbers (Aesthetic only for now) -->
+                          <div class="w-10 bg-gray-200/20 dark:bg-white/[0.02] border-r border-gray-200 dark:border-white/5 flex flex-col items-center py-4 text-[10px] font-mono text-gray-400/50 select-none">
+                             <div v-for="i in 20" :key="i" class="leading-[1.7]">{{ i }}</div>
+                          </div>
+                          
+                          <!-- Editor Area -->
+                          <div class="relative flex-1 font-mono text-[12px] leading-[1.7]">
+                             <!-- Highlighted Layer (Visible) -->
+                             <pre 
+                               class="absolute inset-0 p-4 m-0 pointer-events-none overflow-hidden whitespace-pre-wrap break-all text-gray-700 dark:text-gray-300"
+                               v-html="highlightedBody"
+                               :class="{ 'opacity-10': !isBodyValid }"
+                             />
+                             <!-- Edit Layer (Invisible text, visible cursor) -->
+                             <textarea 
+                               v-model="editableBody" 
+                               rows="15" 
+                               spellcheck="false"
+                               class="relative w-full h-full p-4 bg-transparent text-transparent caret-gray-900 dark:caret-white focus:outline-none resize-none overflow-y-auto whitespace-pre-wrap break-all"
+                               :class="{ 'text-gray-700 dark:text-gray-300': !isBodyValid }"
+                             />
+                          </div>
+                       </div>
+                    </div>
+                    <p v-if="!isBodyValid" class="text-[10px] text-red-500 font-bold flex items-center gap-1.5 px-1 uppercase tracking-tighter">
+                       <UIcon name="i-lucide-alert-circle" />
+                       {{ bodyError }}
+                    </p>
+                 </div>
 
                 <!-- cURL Snippet -->
                 <div v-if="activeRequestTab === 'curl'" class="space-y-3">
