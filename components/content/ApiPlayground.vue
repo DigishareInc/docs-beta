@@ -107,7 +107,30 @@ onMounted(() => {
   editableHeaders.value = ensureObject(props.headers);
   editableBody.value = props.body ? (typeof props.body === 'string' ? props.body : JSON.stringify(props.body, null, 2)) : "";
   validateBody();
+
+  // --- Persistent Token Logic ---
+  const storedToken = localStorage.getItem('ds_api_token');
+  if (storedToken) {
+    Object.keys(editableVariables.value).forEach(k => {
+      const lowerKey = k.toLowerCase();
+      // Auto-fill if it looks like a token placeholder
+      if (isSensitiveHeader(k) && (
+        editableVariables.value[k].includes('YOUR_') || 
+        editableVariables.value[k].includes('VOTRE_') || 
+        editableVariables.value[k] === 'TOKEN'
+      )) {
+        editableVariables.value[k] = storedToken;
+      }
+    });
+  }
 });
+
+const persistToken = (val: string) => {
+  if (!val || val.includes('YOUR_') || val.includes('VOTRE_')) return;
+  localStorage.setItem('ds_api_token', val);
+  flashSuccess.value = true;
+  setTimeout(() => flashSuccess.value = false, 1500);
+};
 
 // Watch for prop changes
 watch(() => props.variables, (newVars) => {
@@ -726,9 +749,26 @@ const formatBytes = (bytes: number) => {
                 <!-- Params -->
                 <div v-if="activeRequestTab === 'params'" class="space-y-5">
                   <div v-if="Object.keys(editableVariables).length > 0" class="space-y-4">
-                     <div v-for="(value, key) in editableVariables" :key="key" class="group/field">
-                        <label class="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1.5 transition-colors group-focus-within/field:text-indigo-500">{{ key }}</label>
-                        <input v-model="editableVariables[key]" type="text" class="w-full text-xs font-mono bg-gray-50 dark:bg-black/20 text-gray-900 dark:text-gray-200 px-3 py-2.5 rounded-lg border border-gray-200 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500/30 transition-all" />
+                     <div v-for="(value, key) in editableVariables" :key="key" class="group/field relative">
+                        <div class="flex items-center justify-between mb-1.5">
+                           <label class="block text-[10px] font-bold uppercase tracking-wider text-gray-500 transition-colors group-focus-within/field:text-indigo-500">{{ key }}</label>
+                           <!-- Persistent Token Action -->
+                           <button 
+                             v-if="isSensitiveHeader(String(key))" 
+                             @click="persistToken(editableVariables[key])"
+                             class="text-[9px] font-bold uppercase tracking-tighter text-indigo-500/60 hover:text-indigo-500 flex items-center gap-1 transition-all"
+                             title="Save token globally for all playgrounds"
+                           >
+                             <UIcon name="i-lucide-lock" class="w-2.5 h-2.5" />
+                             Persist
+                           </button>
+                        </div>
+                        <div class="relative">
+                          <input v-model="editableVariables[key]" :type="isSensitiveHeader(String(key)) && !isSecretVisible(String(key)) ? 'password' : 'text'" class="w-full text-xs font-mono bg-gray-50 dark:bg-black/20 text-gray-900 dark:text-gray-200 pl-3 pr-10 py-2.5 rounded-lg border border-gray-200 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500/30 transition-all" />
+                          <button v-if="isSensitiveHeader(String(key))" @click="toggleSecretVisibility(String(key))" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                             <UIcon :name="isSecretVisible(String(key)) ? 'i-lucide-eye-off' : 'i-lucide-eye'" class="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                      </div>
                   </div>
                   <div v-else class="text-center py-16 opacity-30">
