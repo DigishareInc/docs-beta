@@ -127,9 +127,19 @@ onMounted(() => {
 
 const persistToken = (val: string) => {
   if (!val || val.includes('YOUR_') || val.includes('VOTRE_')) return;
-  localStorage.setItem('ds_api_token', val);
+  
+  // Smart extraction: if it's 'Bearer XXX', save only 'XXX'
+  const tokenToSave = val.match(/^Bearer\s+(.+)$/i)?.[1] || val;
+  
+  localStorage.setItem('ds_api_token', tokenToSave);
   flashSuccess.value = true;
   setTimeout(() => flashSuccess.value = false, 1500);
+};
+
+const isValueSynced = (val: string) => {
+  const stored = localStorage.getItem('ds_api_token');
+  if (!stored) return false;
+  return val.includes(stored);
 };
 
 // Watch for prop changes
@@ -761,16 +771,19 @@ const formatBytes = (bytes: number) => {
                   <div v-if="Object.keys(editableVariables).length > 0" class="space-y-4">
                      <div v-for="(value, key) in editableVariables" :key="key" class="group/field relative">
                         <div class="flex items-center justify-between mb-1.5">
-                           <label class="block text-[10px] font-bold uppercase tracking-wider text-gray-500 transition-colors group-focus-within/field:text-indigo-500">{{ key }}</label>
+                           <div class="flex items-center gap-2">
+                              <label class="block text-[10px] font-bold uppercase tracking-wider text-gray-500 transition-colors group-focus-within/field:text-indigo-500">{{ key }}</label>
+                              <UIcon v-if="isSensitiveHeader(String(key)) && isValueSynced(String(editableVariables[key]))" name="i-lucide-globe" class="w-2.5 h-2.5 text-indigo-400" title="Synced from global storage" />
+                           </div>
                            <!-- Persistent Token Action -->
                            <button 
                              v-if="isSensitiveHeader(String(key))" 
                              @click="persistToken(editableVariables[key])"
                              class="text-[9px] font-bold uppercase tracking-tighter text-indigo-500/60 hover:text-indigo-500 flex items-center gap-1 transition-all"
-                             title="Save token globally for all playgrounds"
+                             :class="{ 'text-indigo-500 opacity-100': isValueSynced(String(editableVariables[key])) }"
                            >
-                             <UIcon name="i-lucide-lock" class="w-2.5 h-2.5" />
-                             Persist
+                             <UIcon :name="isValueSynced(String(editableVariables[key])) ? 'i-lucide-check' : 'i-lucide-share-2'" class="w-2.5 h-2.5" />
+                             {{ isValueSynced(String(editableVariables[key])) ? 'Synced' : 'Sync Globally' }}
                            </button>
                         </div>
                         <div class="relative">
@@ -787,16 +800,27 @@ const formatBytes = (bytes: number) => {
                   </div>
                 </div>
 
-                <!-- Headers -->
-                <div v-if="activeRequestTab === 'headers'" class="space-y-4">
-                   <div v-for="(value, key) in editableHeaders" :key="key" class="grid grid-cols-[1fr_2fr_auto] gap-2 items-center">
-                      <span class="text-[11px] font-mono text-gray-400 truncate">{{ key }}</span>
-                      <div class="relative">
-                         <input v-model="editableHeaders[key]" :type="isSensitiveHeader(String(key)) && !isSecretVisible(String(key)) ? 'password' : 'text'" class="w-full text-xs font-mono bg-gray-50 dark:bg-black/20 px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
-                         <button v-if="isSensitiveHeader(String(key))" @click="toggleSecretVisibility(String(key))" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"><UIcon :name="isSecretVisible(String(key)) ? 'i-lucide-eye-off' : 'i-lucide-eye'" class="w-3.5 h-3.5" /></button>
-                      </div>
-                      <UButton color="neutral" variant="ghost" size="xs" icon="i-lucide-trash-2" @click="removeHeader(String(key))" />
-                   </div>
+                 <!-- Headers -->
+                 <div v-if="activeRequestTab === 'headers'" class="space-y-4">
+                    <div v-for="(value, key) in editableHeaders" :key="key" class="grid grid-cols-[1fr_2.5fr_auto] gap-3 items-center group/header">
+                       <div class="flex flex-col">
+                          <span class="text-[11px] font-mono text-gray-400 truncate">{{ key }}</span>
+                          <button 
+                            v-if="isSensitiveHeader(String(key))" 
+                            @click="persistToken(String(editableHeaders[key]))"
+                            class="text-[9px] font-bold uppercase tracking-tighter text-indigo-500/0 group-hover/header:text-indigo-500/60 transition-all flex items-center gap-1"
+                            :class="{ 'opacity-100 text-indigo-500/60': isValueSynced(String(editableHeaders[key])) }"
+                          >
+                             <UIcon :name="isValueSynced(String(editableHeaders[key])) ? 'i-lucide-globe' : 'i-lucide-share-2'" class="w-2.5 h-2.5" />
+                             {{ isValueSynced(String(editableHeaders[key])) ? 'Global' : 'Sync' }}
+                          </button>
+                       </div>
+                       <div class="relative">
+                          <input v-model="editableHeaders[key]" :type="isSensitiveHeader(String(key)) && !isSecretVisible(String(key)) ? 'password' : 'text'" class="w-full text-xs font-mono bg-gray-50 dark:bg-black/20 px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all" />
+                          <button v-if="isSensitiveHeader(String(key))" @click="toggleSecretVisibility(String(key))" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"><UIcon :name="isSecretVisible(String(key)) ? 'i-lucide-eye-off' : 'i-lucide-eye'" class="w-3.5 h-3.5" /></button>
+                       </div>
+                       <UButton color="neutral" variant="ghost" size="xs" icon="i-lucide-trash-2" @click="removeHeader(String(key))" />
+                    </div>
                    <div class="flex gap-2 p-2.5 bg-gray-50 dark:bg-white/[0.03] rounded-lg border border-dashed border-gray-300 dark:border-white/10 mt-6">
                       <input v-model="newHeaderKey" placeholder="Header Name" class="flex-1 bg-transparent text-xs font-mono px-2 py-1 focus:outline-none text-gray-700 dark:text-gray-300 placeholder:text-gray-400" />
                       <input v-model="newHeaderValue" placeholder="Value" class="flex-1 bg-transparent text-xs font-mono px-2 py-1 focus:outline-none text-gray-700 dark:text-gray-300 placeholder:text-gray-400" @keyup.enter="addHeader" />
