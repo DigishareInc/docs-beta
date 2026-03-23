@@ -813,10 +813,7 @@ const formatBytes = (bytes: number) => {
                    <div class="p-5 bg-gray-950 rounded-xl border border-white/[0.06] overflow-auto">
                       <pre class="text-[11px] font-mono whitespace-pre-wrap leading-relaxed select-all"><code v-html="curlSnippet" class="text-gray-300"></code></pre>
                    </div>
-                   <div class="flex items-center justify-between">
                        <h4 class="text-[10px] font-bold uppercase tracking-wider text-gray-500">Headers</h4>
-                       <UButton color="neutral" variant="ghost" size="xs" icon="i-lucide-copy" @click="copyToClipboard" />
-                    </div>
                     <div class="p-4 bg-gray-50 dark:bg-white/[0.02] border border-gray-200 dark:border-white/[0.04] rounded-xl flex items-center justify-between">
                        <span class="text-[11px] font-mono text-gray-400">Authorization</span>
                        <UBadge color="primary" variant="subtle" size="xs">Included automatically</UBadge>
