@@ -25,7 +25,7 @@ Choisissez **Custom Webhooks** dans la liste des types de fournisseurs disponibl
 Faites défiler jusqu'à la section **Configuration des Webhooks** (Webhook Configuration). Vous y verrez une liste de toutes les catégories d'événements prises en charge.
 ::
 
-![Aperçu de la Configuration des Webhooks](/docs/webhook-overview.png)
+![Aperçu de la Configuration des Webhooks](/webhook-overview.png)
 
 ## 2. Événements Pris en Charge
 
@@ -47,7 +47,7 @@ Pour vous abonner à un événement spécifique :
 
 Cela ouvrira la boîte de dialogue **Nouveau Webhook** (New Webhook).
 
-![Boîte de dialogue Ajouter un Webhook](/docs/webhook-dialog.png)
+![Boîte de dialogue Ajouter un Webhook](/webhook-dialog.png)
 
 ## 4. Paramètres du Webhook
 

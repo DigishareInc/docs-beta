@@ -8,11 +8,11 @@
   "dependencies": {
     "@nuxt/ui": "^4.5.1",
     "@nuxtjs/i18n": "^10.2.3",
-    "@scalar/snippetz": "^0.7.0",
+    "@scalar/snippetz": "^0.7.6",
     "@types/highlight.js": "^10.1.0",
-    "better-sqlite3": "^12.6.2",
-    "docus": "^5.7.0",
+    "better-sqlite3": "^12.8.0",
+    "docus": "^5.8.1",
     "highlight.js": "^11.11.1",
-    "nuxt": "^4.3.1"
+    "nuxt": "^4.4.2"
   }
 }
