@@ -1,5 +1,6 @@
 ---
-title: Webhooks Configuration
+title: Overview
+icon: i-mdi-file-document-outline
 description: Learn how to configure webhooks to receive real-time event notifications from Digishare.
 icon: i-mdi-webhook
 ---

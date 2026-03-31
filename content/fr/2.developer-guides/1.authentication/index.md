@@ -1,7 +1,9 @@
 ---
-title: Authentification
+title: Aperçu
+
 description: Authentifiez vos requêtes de manière sécurisée en utilisant des Jetons d'Accès Personnels ou OAuth 2.0.
-icon: i-mdi-shield-check
+icon: i-mdi-key
+navigation: true
 ---
 
 L'accès sécurisé à l'API Digishare est obligatoire. Nous prenons en charge deux méthodes principales d'authentification selon vos besoins d'intégration. Toutes les requêtes API doivent être effectuées via **HTTPS** ; les appels effectués en HTTP simple échoueront.
@@ -113,5 +115,7 @@ responseSample:
 * **Révocation** : Si un jeton est compromis, révoquez-le immédiatement via le tableau de bord.
 * **Scopes** : Limitez toujours la portée des jetons aux ressources spécifiques dont ils ont besoin.
 * **Limites de Débit** : Toutes les méthodes d'authentification sont soumises à nos limites de débit API.
+
+
 
 

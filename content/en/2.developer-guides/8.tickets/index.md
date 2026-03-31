@@ -1,5 +1,6 @@
 ---
-title: Tickets
+title: Overview
+icon: i-mdi-file-document-outline
 description: Manage customer request lifecycles via the integrated ticket system.
 icon: i-mdi-ticket
 ---

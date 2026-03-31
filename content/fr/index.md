@@ -27,7 +27,7 @@ Référence API
 
 ::UPageSection{title="Conçu pour les Développeurs" description="Points de terminaison API standardisés, gestion détaillée des erreurs et extraits de code multilingues."}
 ::UPageGrid
-:UPageCard{title="Bonnes Pratiques" icon="i-mdi-check-circle" to="/fr/developer-guides/best-practices" description="Apprenez à optimiser votre intégration pour la fiabilité et la rapidité."}
+
 :UPageCard{title="Référence API" icon="i-mdi-book-open-variant" to="/fr/developer-guides/authentication" description="Explorez les points de terminaison, les structures de requêtes et l'authentification."}
 :UPageCard{title="Multilingual" icon="i-mdi-translate" to="/" description="Documentation entièrement disponible en Anglais et Français."}
 ::

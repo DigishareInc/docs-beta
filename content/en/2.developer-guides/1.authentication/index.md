@@ -1,7 +1,9 @@
 ---
-title: Authentication
+title: Overview
+
 description: Securely authenticate your requests using Personal Access Tokens or OAuth 2.0.
-icon: i-mdi-shield-check
+icon: i-mdi-key
+navigation: true
 ---
 
 Secure access to the Digishare API is mandatory. We support two primary methods of authentication depending on your integration needs. All API requests must be made over **HTTPS**; calls made over plain HTTP will fail.
@@ -113,5 +115,7 @@ responseSample:
 * **Revocation**: If a token is compromised, revoke it immediately via the dashboard.
 * **Scopes**: Always limit the scope of tokens to the specific resources they need to access.
 * **Rate Limits**: All authentication methods are subject to our API rate limits.
+
+
 
 

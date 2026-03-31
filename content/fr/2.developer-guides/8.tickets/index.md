@@ -1,5 +1,6 @@
 ---
-title: Tickets
+title: Aperçu
+icon: i-mdi-file-document-outline
 description: Gérer le cycle de vie des demandes clients via le système de tickets intégré.
 icon: i-mdi-ticket
 ---
