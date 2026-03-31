@@ -601,6 +601,7 @@ const formatBytes = (bytes: number) => {
                   Request
                 </button>
                 <button 
+                  v-if="responseSample"
                   @click="mainViewMode = 'sample'"
                   class="px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-md transition-all"
                   :class="mainViewMode === 'sample' ? 'bg-white dark:bg-white/10 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-400'"
