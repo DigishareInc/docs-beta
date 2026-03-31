@@ -5,7 +5,7 @@ description: Bienvenue dans la section Guides Développeur. Vous trouverez ici d
 ---
 
 ::card-group
-::card{title="Authentification" icon="i-lucide-key" to="/fr/developer-guides/1.authentication"}
+::card{title="Authentification" icon="i-lucide-key" to="/fr/developer-guides/authentication"}
 Commencez ici pour apprendre à sécuriser l'authentification de vos requêtes API.
 ::
 

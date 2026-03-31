@@ -5,7 +5,7 @@ description: Welcome to the Developer Guides section. Here you will find structu
 ---
 
 ::card-group
-::card{title="Authentication" icon="i-lucide-key" to="/developer-guides/1.authentication"}
+::card{title="Authentication" icon="i-lucide-key" to="/developer-guides/authentication"}
 Start here to learn how to securely authenticate your API requests.
 ::
 
