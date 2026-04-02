@@ -1,4 +1,4 @@
 [install]
 # Security: Only install packages that are at least 4 days old.
 # Ref: https://bun.sh/docs/pm/cli/install#minimum-release-age
-minimumReleaseAge = "4d"
+minimumReleaseAge = 345600
