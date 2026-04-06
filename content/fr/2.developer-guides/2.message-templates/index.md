@@ -6,7 +6,7 @@ description: Gérez et envoyez différents types de modèles de messages sur dif
 ---
 
 
-Les **Modèles de Message Digishare** supportent plusieurs formats : **Texte**, **ITM** (Interactif Digishare) ou **WABA** (Modèle Meta approuvé). Ils sont classés en catégories selon leur finalité et chaque type possède ses propres règles d'utilisation et tarifs.
+Les **Modèles de Message Digishare** supportent plusieurs formats : **Texte**, **ITM** (Interactive Template Message) ou **WABA** (Modèle Meta approuvé). Ils sont classés en catégories selon leur finalité et chaque type possède ses propres règles d'utilisation et tarifs.
 
 ## Catégories de Templates
 
