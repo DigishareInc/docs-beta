@@ -9,7 +9,7 @@ seo:
 ::UButton{to="/overview/introduction" icon="i-mdi-arrow-right" size="xl" color="primary" trailing}
 Get started
 ::
-::UButton{to="/developer-guides/authentication" variant="ghost" color="neutral" size="xl"}
+::UButton{to="/en/developer-guides/authentication" variant="ghost" color="neutral" size="xl"}
 API Reference
 ::
 ::
