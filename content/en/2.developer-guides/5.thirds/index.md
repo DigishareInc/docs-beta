@@ -1,6 +1,5 @@
 ---
 title: Overview
-navigation: false
 description: Learn about Third entities and how to manage contacts, customers, and leads via the API.
 icon: i-mdi-account-group
 ---
