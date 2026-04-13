@@ -30,6 +30,8 @@ jobs:
         run: bun install --frozen-lockfile
       - name: Build site
         run: bun run generate
+        env:
+          NUXT_APP_BASE_URL: ${{ github.repository == 'DigishareInc/docs' && '/docs/' || '/docs-beta/' }}
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:

@@ -26,7 +26,7 @@ export default defineNuxtConfig({
     documentDriven: true,
   },
   app: {
-    baseURL: process.env.NODE_ENV === "production" ? "/docs-beta/" : "/",
+    baseURL: process.env.NUXT_APP_BASE_URL || "/",
   },
   nitro: {
     preset: "github_pages",
