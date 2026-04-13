@@ -1,4 +1,4 @@
-# Digishare Documentation
+# Digishare Documentation  (Beta)
 
 > Official API documentation for the Digishare Platform
 
